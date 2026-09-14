@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>六线谱库 · Guitar Tab Hub — 免费吉他六线谱与全网资源导航</title>
+  <meta name="description" content="免费在线吉他六线谱网站：内置公有领域曲目六线谱（可播放旋律跟练）、常用和弦指位图库，并整合 Ultimate Guitar、Songsterr、吉他社等全网正版六线谱资源导航。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B8%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ======= 顶部导航 ======= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="#top">🎸 <span>六线谱库</span><em>Guitar Tab Hub</em></a>
+      <nav class="nav">
+        <a href="#library">曲谱库</a>
+        <a href="#chords">和弦图库</a>
+        <a href="#resources">资源导航</a>
+        <a href="#about">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ======= 首屏 ======= -->
+  <section class="hero" id="top">
+    <div class="container">
+      <h1>找吉他六线谱，<br>从这里<span class="accent">一站出发</span></h1>
+      <p class="hero-sub">
+        内置可播放的公有领域曲目六线谱 + 常用和弦指位图，<br class="br-pc">
+        并为你整合了全网主流六线谱资源站点的直达入口。
+      </p>
+      <div class="hero-search">
+        <input id="searchInput" type="search" placeholder="搜索曲目 / 作曲者 / 风格 / 和弦，如：小星星、贝多芬、C" aria-label="搜索曲谱">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><strong id="statSongs">–</strong><span>内置曲谱</span></div>
+        <div class="stat"><strong id="statChords">–</strong><span>和弦指位图</span></div>
+        <div class="stat"><strong id="statRes">–</strong><span>资源站点入口</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <!-- ======= 曲谱库 ======= -->
+    <section class="section" id="library">
+      <div class="container">
+        <h2 class="sec-title">曲谱库</h2>
+        <p class="sec-desc">全部为本站编配的<b>公有领域曲目</b>，谱面在浏览器中直接渲染，点击「查看六线谱」后可播放旋律跟练。</p>
+        <div class="filters">
+          <div class="chip-row" id="diffChips" role="group" aria-label="难度筛选">
+            <button class="chip-btn on" data-v="all">全部难度</button>
+            <button class="chip-btn" data-v="easy">入门 ★</button>
+            <button class="chip-btn" data-v="mid">初级及以下 ★★</button>
+          </div>
+          <div class="chip-row" id="typeChips" role="group" aria-label="类型筛选">
+            <button class="chip-btn on" data-v="all">全部类型</button>
+            <button class="chip-btn" data-v="指弹">指弹</button>
+            <button class="chip-btn" data-v="弹唱">弹唱</button>
+          </div>
+        </div>
+        <div class="song-grid" id="songGrid"></div>
+      </div>
+    </section>
+
+    <!-- ======= 和弦图库 ======= -->
+    <section class="section section-alt" id="chords">
+      <div class="container">
+        <h2 class="sec-title">和弦图库</h2>
+        <p class="sec-desc">16 个最常用的开放把位和弦，覆盖绝大多数流行弹唱曲目。<span class="hint">○ = 空弦 · x = 不弹 · 橙点 = 按弦位置</span></p>
+        <div class="chord-grid" id="chordGrid"></div>
+      </div>
+    </section>
+
+    <!-- ======= 资源导航 ======= -->
+    <section class="section" id="resources">
+      <div class="container">
+        <h2 class="sec-title">全网六线谱资源导航</h2>
+        <p class="sec-desc">精选国内外主流、可合法访问的六线谱平台与制谱软件。点击卡片直达官网。</p>
+        <div id="resGrid"></div>
+      </div>
+    </section>
+
+    <!-- ======= 关于 / 版权说明 ======= -->
+    <section class="section section-alt" id="about">
+      <div class="container">
+        <h2 class="sec-title">关于本站</h2>
+        <div class="about-grid">
+          <div class="about-card">
+            <h3>🎼 内置曲谱的来源</h3>
+            <p>本站内置曲谱均为<b>公有领域（Public Domain）作品</b>（如贝多芬《欢乐颂》《致爱丽丝》、传统童谣等），由本站自行编配指法与和声，不存在版权问题，可自由练习与分享。</p>
+          </div>
+          <div class="about-card">
+            <h3>⚖️ 为什么不「抓取全网曲谱」</h3>
+            <p>网络上的流行歌曲六线谱（如各大谱站的用户上传谱）大多受<b>著作权保护</b>，批量抓取、复制转载会侵犯词曲作者与平台的合法权益。因此本站采用合规方式：自建公有领域曲谱 + 导航到正版资源站点。</p>
+          </div>
+          <div class="about-card">
+            <h3>🧭 怎么用资源导航</h3>
+            <p>想弹<b>流行歌曲</b>：优先去 Ultimate Guitar / 吉他社 / 弹琴吧搜索正版或用户授权谱；想<b>跟练 Solo</b>：Songsterr 的播放式谱最好用；下载了 <b>.gp 文件</b>：用免费的 TuxGuitar 或 Guitar Pro 打开。</p>
+          </div>
+          <div class="about-card">
+            <h3>🛠️ 纯前端实现</h3>
+            <p>本站为纯静态网站，六线谱与和弦图均由 JavaScript 实时绘制为 SVG，旋律播放基于浏览器原生 Web Audio API，无需任何服务器与账号，可离线部署。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======= 页脚 ======= -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>🎸 六线谱库 · Guitar Tab Hub — 让每一次找谱都简单一点</p>
+      <p class="foot-note">内置谱例均为公有领域曲目之原创编配 · 外链资源版权归原作者及平台所有</p>
+    </div>
+  </footer>
+
+  <!-- ======= 谱面弹窗 ======= -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-box">
+      <button class="modal-close" id="modalClose" aria-label="关闭">✕</button>
+      <h2 id="mTitle"></h2>
+      <p class="m-sub" id="mSub"></p>
+      <div class="m-meta" id="mMeta"></div>
+      <p class="m-desc" id="mDesc"></p>
+      <div id="mChordLine"></div>
+      <div class="player-bar">
+        <button class="btn btn-primary" id="btnPlay">▶ 播放旋律</button>
+        <div class="chip-row" id="speedChips" role="group" aria-label="播放速度">
+          <button class="chip-btn" data-v="0.6">0.6x 慢练</button>
+          <button class="chip-btn" data-v="0.8">0.8x</button>
+          <button class="chip-btn on" data-v="1">1x</button>
+        </div>
+      </div>
+      <div class="tab-scroll" id="tabScroll"></div>
+      <p class="sr-only" id="tabFallback"></p>
+      <div id="mChords"></div>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
