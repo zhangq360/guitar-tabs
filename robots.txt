@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zhangq360.github.io/guitar-tabs/sitemap.xml
