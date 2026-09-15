@@ -149,38 +149,8 @@
   let currentSpeed = 1;
 
   function openSong(id) {
-    const song = TAB_DATA.find(function (s) { return s.id === id; });
-    if (!song) return;
-    currentSong = song;
-
-    el("mTitle").textContent = song.title;
-    el("mSub").textContent = song.subtitle + " · " + song.artist;
-    el("mDesc").textContent = song.desc;
-    el("mMeta").innerHTML =
-      '<span class="chip chip-chord">' + esc(song.key) + "</span>" +
-      '<span class="chip chip-chord">' + esc(song.timeSig) + "</span>" +
-      '<span class="chip chip-chord">♩= ' + song.bpm + "</span>" +
-      '<span class="chip chip-chord">难度 ' + stars(song.difficulty) + "</span>";
-
-    const chordImgs = (song.chords || []).map(function (c) {
-      const cd = CHORDS.find(function (x) { return x.name === c; });
-      return cd ? "<div class='mini-chord'>" + renderChordSVG(cd) + "</div>" : "";
-    }).join("");
-    el("mChords").innerHTML = chordImgs
-      ? '<h4>用到的和弦</h4><div class="chord-row">' + chordImgs + "</div>"
-      : "";
-
-    el("mChordLine").innerHTML = song.chordLine
-      ? '<div class="chordline">' + esc(song.chordLine) + "</div>"
-      : "";
-
-    el("tabScroll").innerHTML = renderTabSVG(song);
-    el("tabFallback").textContent = song.title + " · " + song.type + " · " + song.key +
-      "（横向滚动查看完整谱面，点击下方播放可听旋律）";
-
-    el("modal").classList.add("show");
-    document.body.style.overflow = "hidden";
-    el("btnPlay").textContent = "▶ 播放旋律";
+    // 跳转到独立详情页（每个详情页都是单独的收录入口，利于 SEO）
+    location.href = "song/" + id + ".html";
   }
 
   function closeSong() {

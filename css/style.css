@@ -326,3 +326,44 @@ a { color: var(--accent-deep); }
   .song-row { grid-template-columns: 28px minmax(0, 1fr); }
   .row-right { grid-column: 2; }
 }
+
+/* =========================================================
+ * 曲目详情页（song/*.html）
+ * ========================================================= */
+.detail-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; padding-top: 24px; padding-bottom: 48px; }
+.detail-main { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.detail-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px 26px; }
+.detail-card h1 { font-size: 1.55rem; margin: 4px 0 12px; color: var(--link); line-height: 1.35; }
+.detail-card h1 small { display: block; font-size: 0.9rem; font-weight: 400; color: var(--ink-faint); margin-top: 6px; }
+.crumbs { font-size: 0.85rem; color: var(--ink-faint); margin-bottom: 4px; }
+.crumbs a { color: var(--ink-faint); }
+.crumbs a:hover { color: var(--link); }
+.meta-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+.tab-box { background: #0f1116; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.tab-scroll { overflow-x: auto; }
+.play-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+.speed-chips { display: flex; gap: 8px; }
+.detail-card p { color: var(--ink-soft); line-height: 1.85; margin: 10px 0; }
+.detail-card p strong { color: var(--link); }
+.muted { color: var(--ink-faint); font-size: 0.88rem; }
+.side-title { font-size: 1rem; padding-left: 10px; border-left: 3px solid var(--link); margin-bottom: 12px; }
+.rank-list { list-style: none; counter-reset: rk; }
+.rank-list li { border-bottom: 1px dashed var(--line); }
+.rank-list li:last-child { border-bottom: 0; }
+.rank-list a { display: flex; align-items: baseline; gap: 8px; padding: 9px 2px; color: var(--ink-soft); font-size: 0.88rem; }
+.rank-list a:hover { color: var(--link); }
+.rank-list .rk { color: var(--link); font-weight: 700; min-width: 20px; }
+.rank-list li.on a { color: var(--link); }
+.detail-card.promo { background: linear-gradient(160deg, rgba(212,167,84,.12), var(--surface)); }
+.detail-card.promo p { font-size: 0.88rem; }
+.rel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.rel-card { display: flex; flex-direction: column; gap: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; transition: border-color .15s; }
+.rel-card:hover { border-color: var(--link); }
+.rel-card strong { color: var(--ink); font-size: 0.95rem; }
+.rel-card em { font-style: normal; color: var(--ink-faint); font-size: 0.8rem; }
+.mini-name { display: block; text-align: center; font-size: 0.85rem; color: var(--link); margin-bottom: 2px; }
+.site-footer { border-top: 1px solid var(--line); padding: 26px 0; margin-top: 40px; color: var(--ink-faint); font-size: 0.85rem; text-align: center; }
+.site-footer a { color: var(--ink-faint); text-decoration: underline; }
+@media (max-width: 900px) {
+  .detail-wrap { grid-template-columns: 1fr; }
+}
