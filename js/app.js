@@ -18,48 +18,130 @@
     });
   }
 
-  /* ---------- 曲谱卡片 ---------- */
-  const state = { q: "", diff: "all", type: "all" };
+  /* ---------- 状态 ---------- */
+  const state = { q: "", diff: "all", type: "all", key: "all" };
 
-  function songCard(song) {
+  /* ---------- 曲谱列表行 ---------- */
+  function songRow(song, idx) {
     const diffText = ["", "入门", "初级", "中级", "进阶", "高级"][song.difficulty] || "初级";
-    const chordChips = (song.chords || []).map(function (c) {
-      return '<span class="chip chip-chord">' + esc(c) + "</span>";
-    }).join("");
     return (
-      '<article class="song-card" data-id="' + song.id + '">' +
-      '<div class="card-top"><span class="chip chip-type">' + esc(song.type) + "</span>" +
-      '<span class="diff" title="难度 ' + song.difficulty + '/5">' + stars(song.difficulty) + "</span></div>" +
-      '<h3 class="card-title">' + esc(song.title) + "</h3>" +
-      '<p class="card-sub">' + esc(song.subtitle) + "</p>" +
-      '<p class="card-artist">' + esc(song.artist) + " · " + esc(song.genre) + "</p>" +
-      '<div class="card-meta"><span>' + esc(song.key) + "</span><span>" + esc(song.timeSig) +
-      "</span><span>♩= " + song.bpm + "</span></div>" +
-      '<div class="card-chords">' + chordChips + "</div>" +
-      '<button class="btn btn-primary btn-open" type="button">查看六线谱</button>' +
+      '<article class="song-row" data-id="' + song.id + '">' +
+      '<span class="row-idx">' + (idx + 1) + "</span>" +
+      "<div>" +
+      '<h3 class="row-title">' + esc(song.title) + " · " + esc(song.artist) + "（" + esc(song.key) + "）</h3>" +
+      '<p class="row-sub">' + esc(song.subtitle) + " · " + esc(song.genre) + " · ♩= " + song.bpm + "</p>" +
+      "</div>" +
+      '<div class="row-right"><span class="chip chip-type">' + esc(song.type) + "</span>" +
+      '<span class="diff" title="难度 ' + song.difficulty + '/5">' + stars(song.difficulty) + "</span>" +
+      "<span>" + diffText + "</span></div>" +
       "</article>"
     );
   }
 
-  function renderSongs() {
-    const grid = el("songGrid");
-    const list = TAB_DATA.filter(function (s) {
-      const q = state.q.trim().toLowerCase();
+  function filteredSongs() {
+    const q = state.q.trim().toLowerCase();
+    return TAB_DATA.filter(function (s) {
       const hitQ = !q ||
         s.title.toLowerCase().indexOf(q) >= 0 ||
         s.subtitle.toLowerCase().indexOf(q) >= 0 ||
         s.artist.toLowerCase().indexOf(q) >= 0 ||
         s.genre.toLowerCase().indexOf(q) >= 0 ||
         (s.chords || []).join(" ").toLowerCase().indexOf(q) >= 0;
-      const hitD = state.diff === "all" || s.difficulty <= (state.diff === "easy" ? 1 : state.diff === "mid" ? 2 : 99);
+      const hitD = state.diff === "all" || s.difficulty <= parseInt(state.diff, 10);
       const hitT = state.type === "all" || s.type === state.type;
-      return hitQ && hitD && hitT;
+      const hitK = state.key === "all" || s.key === state.key;
+      return hitQ && hitD && hitT && hitK;
     });
+  }
+
+  function renderSongs() {
+    const box = el("songList");
+    const list = filteredSongs();
     if (!list.length) {
-      grid.innerHTML = '<p class="empty">没有找到匹配的曲谱，换个关键词试试～</p>';
+      box.innerHTML = '<p class="empty">没有找到匹配的曲谱，换个关键词试试～</p>';
       return;
     }
-    grid.innerHTML = list.map(songCard).join("");
+    box.innerHTML = list.map(songRow).join("");
+  }
+
+  /* ---------- 左侧筛选（难度 / 调性，带数量统计） ---------- */
+  function renderSideFilters() {
+    const diffDefs = [
+      { v: "all", label: "全部难度" },
+      { v: "1", label: "入门 ★" },
+      { v: "2", label: "初级及以下 ★★" },
+      { v: "3", label: "中级及以下 ★★★" }
+    ];
+    const keySet = [];
+    TAB_DATA.forEach(function (s) {
+      if (keySet.indexOf(s.key) < 0) keySet.push(s.key);
+    });
+    const diffHtml = diffDefs.map(function (d) {
+      const n = d.v === "all" ? TAB_DATA.length :
+        TAB_DATA.filter(function (s) { return s.difficulty <= parseInt(d.v, 10); }).length;
+      return '<div class="side-item" data-group="diff" data-v="' + d.v + '" role="button" tabindex="0">' +
+        "<span>" + d.label + "</span><span class='cnt'>" + n + "</span></div>";
+    }).join("");
+    const keyHtml = ['<div class="side-item" data-group="key" data-v="all" role="button" tabindex="0">' +
+      "<span>全部调性</span><span class='cnt'>" + TAB_DATA.length + "</span></div>"]
+      .concat(keySet.map(function (k) {
+        const n = TAB_DATA.filter(function (s) { return s.key === k; }).length;
+        return '<div class="side-item" data-group="key" data-v="' + esc(k) + '" role="button" tabindex="0">' +
+          "<span>" + esc(k) + "</span><span class='cnt'>" + n + "</span></div>";
+      })).join("");
+    el("sideFilters").innerHTML =
+      '<h3 class="side-title">难度</h3>' + diffHtml +
+      '<h3 class="side-title" style="margin-top:14px">调性</h3>' + keyHtml;
+  }
+
+  function bindSideFilters() {
+    el("sideFilters").addEventListener("click", function (e) {
+      const item = e.target.closest(".side-item");
+      if (!item) return;
+      const group = item.dataset.group;
+      el("sideFilters").querySelectorAll('.side-item[data-group="' + group + '"]').forEach(function (x) {
+        x.classList.remove("on");
+      });
+      item.classList.add("on");
+      state[group] = item.dataset.v;
+      renderSongs();
+    });
+  }
+
+  /* ---------- 右侧：最新上架 + 热门标签 ---------- */
+  function renderLatest() {
+    const latest = TAB_DATA.slice().reverse().slice(0, 5);
+    el("latestList").innerHTML = latest.map(function (s, i) {
+      return '<div class="side-item" data-song="' + esc(s.id) + '" role="button" tabindex="0">' +
+        '<span class="row-idx">' + (i + 1) + "</span>" +
+        "<span style=\"flex:1;margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" +
+        esc(s.title) + " " + esc(s.artist) + "</span></div>";
+    }).join("");
+    el("latestList").addEventListener("click", function (e) {
+      const item = e.target.closest(".side-item[data-song]");
+      if (item) openSong(item.dataset.song);
+    });
+  }
+
+  function renderTagCloud() {
+    const seen = {};
+    const tags = [];
+    TAB_DATA.forEach(function (s) {
+      (s.chords || []).forEach(function (c) {
+        if (!seen[c]) { seen[c] = true; tags.push(c); }
+      });
+    });
+    el("tagCloud").innerHTML = tags.map(function (t) {
+      return '<button class="chip chip-chord" data-tag="' + esc(t) + '" type="button">' + esc(t) + "</button>";
+    }).join("");
+    el("tagCloud").addEventListener("click", function (e) {
+      const b = e.target.closest(".chip-chord");
+      if (!b) return;
+      state.q = b.dataset.tag;
+      el("searchInput").value = state.q;
+      renderSongs();
+      el("library").scrollIntoView({ behavior: "smooth" });
+    });
   }
 
   /* ---------- 谱面弹窗 ---------- */
@@ -159,27 +241,18 @@
       renderSongs();
     });
 
-    document.querySelectorAll("#diffChips .chip-btn").forEach(function (b) {
+    document.querySelectorAll("#typeChips .tab-btn").forEach(function (b) {
       b.addEventListener("click", function () {
-        document.querySelectorAll("#diffChips .chip-btn").forEach(function (x) { x.classList.remove("on"); });
-        b.classList.add("on");
-        state.diff = b.dataset.v;
-        renderSongs();
-      });
-    });
-    document.querySelectorAll("#typeChips .chip-btn").forEach(function (b) {
-      b.addEventListener("click", function () {
-        document.querySelectorAll("#typeChips .chip-btn").forEach(function (x) { x.classList.remove("on"); });
+        document.querySelectorAll("#typeChips .tab-btn").forEach(function (x) { x.classList.remove("on"); });
         b.classList.add("on");
         state.type = b.dataset.v;
         renderSongs();
       });
     });
 
-    el("songGrid").addEventListener("click", function (e) {
-      const btn = e.target.closest(".btn-open");
-      const card = e.target.closest(".song-card");
-      if (card) openSong(card.dataset.id);
+    el("songList").addEventListener("click", function (e) {
+      const row = e.target.closest(".song-row");
+      if (row) openSong(row.dataset.id);
     });
 
     el("modalClose").addEventListener("click", closeSong);
@@ -207,9 +280,9 @@
       el("btnPlay").dataset.playing = "0";
     });
 
-    document.querySelectorAll("#speedChips .chip-btn").forEach(function (b) {
+    document.querySelectorAll("#speedChips .tab-btn").forEach(function (b) {
       b.addEventListener("click", function () {
-        document.querySelectorAll("#speedChips .chip-btn").forEach(function (x) { x.classList.remove("on"); });
+        document.querySelectorAll("#speedChips .tab-btn").forEach(function (x) { x.classList.remove("on"); });
         b.classList.add("on");
         currentSpeed = parseFloat(b.dataset.v);
       });
@@ -223,6 +296,10 @@
     let resCount = 0;
     RESOURCES.forEach(function (c) { resCount += c.items.length; });
     el("statRes").textContent = resCount + " 个";
+    renderSideFilters();
+    bindSideFilters();
+    renderLatest();
+    renderTagCloud();
     renderSongs();
     renderChordLib();
     renderResources();

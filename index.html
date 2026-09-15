@@ -6,7 +6,7 @@
   <title>六线谱库 · Guitar Tab Hub — 免费吉他六线谱与全网资源导航</title>
   <meta name="description" content="免费在线吉他六线谱网站：内置公有领域曲目六线谱（可播放旋律跟练）、常用和弦指位图库，并整合 Ultimate Guitar、Songsterr、吉他社等全网正版六线谱资源导航。">
   <meta name="keywords" content="吉他六线谱,吉他谱,tab,guitar tab,和弦图,吉他入门,公有领域曲谱,免费吉他谱">
-  <meta name="theme-color" content="#d96c3f">
+  <meta name="theme-color" content="#14161b">
   <link rel="canonical" href="https://guitar-tabs.pages.dev/">
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -32,7 +32,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B8%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="theme-dark">
 
   <!-- ======= 顶部导航 ======= -->
   <header class="site-header">
@@ -69,24 +69,53 @@
   </section>
 
   <main>
-    <!-- ======= 曲谱库 ======= -->
+    <!-- ======= 曲谱库：左筛选 + 中列表 + 右排行 ======= -->
     <section class="section" id="library">
       <div class="container">
-        <h2 class="sec-title">曲谱库</h2>
-        <p class="sec-desc">全部为本站编配的<b>公有领域曲目</b>，谱面在浏览器中直接渲染，点击「查看六线谱」后可播放旋律跟练。</p>
-        <div class="filters">
-          <div class="chip-row" id="diffChips" role="group" aria-label="难度筛选">
-            <button class="chip-btn on" data-v="all">全部难度</button>
-            <button class="chip-btn" data-v="easy">入门 ★</button>
-            <button class="chip-btn" data-v="mid">初级及以下 ★★</button>
-          </div>
-          <div class="chip-row" id="typeChips" role="group" aria-label="类型筛选">
-            <button class="chip-btn on" data-v="all">全部类型</button>
-            <button class="chip-btn" data-v="指弹">指弹</button>
-            <button class="chip-btn" data-v="弹唱">弹唱</button>
-          </div>
+        <div class="browse-head">
+          <h2>曲谱库</h2>
+          <span class="hint">全部为公有领域曲目原创编配 · 点击任意一行查看谱面并播放跟练</span>
         </div>
-        <div class="song-grid" id="songGrid"></div>
+
+        <div class="browse">
+          <!-- 左侧筛选 -->
+          <aside class="browse-side-l">
+            <div class="side-panel" id="sideFilters"><!-- 由 app.js 渲染 --></div>
+          </aside>
+
+          <!-- 中间列表 -->
+          <div>
+            <div class="list-tabs" id="typeChips" role="group" aria-label="类型筛选">
+              <button class="tab-btn on" data-v="all">全部类型</button>
+              <button class="tab-btn" data-v="指弹">指弹</button>
+              <button class="tab-btn" data-v="弹唱">弹唱</button>
+            </div>
+            <div class="song-list" id="songList"></div>
+          </div>
+
+          <!-- 右侧排行 / 标签 -->
+          <aside class="browse-side-r">
+            <div class="side-panel side-rank">
+              <h3 class="side-title">最新上架</h3>
+              <div id="latestList"></div>
+            </div>
+            <div class="side-panel">
+              <h3 class="side-title">热门和弦标签</h3>
+              <div class="tag-cloud" id="tagCloud"></div>
+            </div>
+            <div class="side-panel">
+              <h3 class="side-title">零基础？</h3>
+              <div style="padding:2px 8px 6px">
+                <p style="margin:0 0 10px;color:var(--ink-soft);font-size:.88rem">
+                  看不懂六线谱？10 分钟教会你，附 30 天练习计划。
+                </p>
+                <a class="btn btn-primary" href="tutorial.html" style="display:inline-block;text-decoration:none">
+                  📖 新手教程
+                </a>
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
     </section>
 
@@ -154,9 +183,9 @@
       <div class="player-bar">
         <button class="btn btn-primary" id="btnPlay">▶ 播放旋律</button>
         <div class="chip-row" id="speedChips" role="group" aria-label="播放速度">
-          <button class="chip-btn" data-v="0.6">0.6x 慢练</button>
-          <button class="chip-btn" data-v="0.8">0.8x</button>
-          <button class="chip-btn on" data-v="1">1x</button>
+          <button class="tab-btn" data-v="0.6">0.6x 慢练</button>
+          <button class="tab-btn" data-v="0.8">0.8x</button>
+          <button class="tab-btn on" data-v="1">1x</button>
         </div>
       </div>
       <div class="tab-scroll" id="tabScroll"></div>

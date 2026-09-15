@@ -85,14 +85,14 @@ function renderTabSVG(song) {
            '" stroke="#c3c8d0" stroke-width="1" stroke-dasharray="3 3"/>';
     } else {
       s += '<line x1="' + bx + '" y1="' + staffTop + '" x2="' + bx + '" y2="' + staffBottom +
-           '" stroke="#4a5060" stroke-width="1.4"/>';
+           '" stroke="#a8b0bd" stroke-width="1.4"/>';
     }
     if (isLast) {
       // 终止线（双线）
       s += '<line x1="' + (width - 22) + '" y1="' + staffTop + '" x2="' + (width - 22) + '" y2="' + staffBottom +
-           '" stroke="#4a5060" stroke-width="1.2"/>';
+           '" stroke="#a8b0bd" stroke-width="1.2"/>';
       s += '<line x1="' + (width - 15) + '" y1="' + staffTop + '" x2="' + (width - 15) + '" y2="' + staffBottom +
-           '" stroke="#4a5060" stroke-width="3"/>';
+           '" stroke="#a8b0bd" stroke-width="3"/>';
     }
     const info = barInfo[bi];
     if (info.chord) {
@@ -122,18 +122,18 @@ function renderTabSVG(song) {
       const stemBottom = staffBottom + STEM;
       s += '<g class="tabstem" data-ev="' + ev.evIdx + '">';
       s += '<line x1="' + ev.x + '" y1="' + stemTop + '" x2="' + ev.x + '" y2="' + stemBottom +
-           '" stroke="#4a5060" stroke-width="1.4"/>';
+           '" stroke="#a8b0bd" stroke-width="1.4"/>';
       // 符头
       const hollow = ev.dur >= 2;
       s += '<ellipse cx="' + ev.x + '" cy="' + stemBottom + '" rx="5.2" ry="3.8" fill="' +
-           (hollow ? "#ffffff" : "#4a5060") + '" stroke="#4a5060" stroke-width="1.3"/>';
+           (hollow ? "#ffffff" : "#a8b0bd") + '" stroke="#a8b0bd" stroke-width="1.3"/>';
       // 附点
       if (ev.dur === 1.5 || ev.dur === 3) {
-        s += '<circle cx="' + (ev.x + 11) + '" cy="' + (stemBottom) + '" r="2.2" fill="#4a5060"/>';
+        s += '<circle cx="' + (ev.x + 11) + '" cy="' + (stemBottom) + '" r="2.2" fill="#a8b0bd"/>';
       }
       // 八分音符旗
       if (ev.dur === 0.5) {
-        s += '<path d="M ' + ev.x + " " + stemBottom + ' q 8 3 6 12" fill="none" stroke="#4a5060" stroke-width="1.8" stroke-linecap="round"/>';
+        s += '<path d="M ' + ev.x + " " + stemBottom + ' q 8 3 6 12" fill="none" stroke="#a8b0bd" stroke-width="1.8" stroke-linecap="round"/>';
       }
       s += "</g>";
     }
@@ -175,7 +175,7 @@ function renderChordSVG(chord) {
   }
   for (let j = 0; j <= 3; j++) {
     s += '<line x1="' + gx + '" y1="' + (gy + j * RS) + '" x2="' + (gx + gw) + '" y2="' + (gy + j * RS) +
-         '" stroke="' + (j === 0 && offset === 0 ? "#4a5060" : "#c3c8d0") +
+         '" stroke="' + (j === 0 && offset === 0 ? "#a8b0bd" : "#c3c8d0") +
          '" stroke-width="' + (j === 0 && offset === 0 ? 3 : 1.2) + '"/>';
   }
 
@@ -186,7 +186,7 @@ function renderChordSVG(chord) {
     if (f === -1) {
       s += '<text x="' + cx + '" y="' + (gy - 7) + '" class="chord-x" text-anchor="middle">x</text>';
     } else if (f === 0) {
-      s += '<circle cx="' + cx + '" cy="' + (gy - 10) + '" r="3.6" fill="none" stroke="#4a5060" stroke-width="1.3"/>';
+      s += '<circle cx="' + cx + '" cy="' + (gy - 10) + '" r="3.6" fill="none" stroke="#a8b0bd" stroke-width="1.3"/>';
     } else {
       const row = f - offset;   // 第几格
       const cy = gy + (row - 0.5) * RS;
