@@ -1,42 +1,58 @@
 const fs = require("fs");
 const root = "C:/Users/Administrator/WorkBuddy/2026-09-14-20-04-16/guitar-tabs/";
-const code = fs.readFileSync(root + "js/data.js", "utf8") + "\n" +
-             fs.readFileSync(root + "js/renderer.js", "utf8") + "\n" +
-             `
-const tw = TAB_DATA.find(s => s.id === "twinkle");
-console.log("曲目总数=" + TAB_DATA.length + "，twinkle 小节=" + tw.bars.length + "，类型=" + tw.type);
+const data = fs.readFileSync(root + "js/data.js", "utf8");
+const renderer = fs.readFileSync(root + "js/renderer.js", "utf8");
+const player = fs.readFileSync(root + "js/player.js", "utf8");
+const sandbox = data + "\n" + renderer + "\n" + player + "\n" + `
+const BEATS = { "4/4": 4, "3/4": 3, "3/8": 1.5 };
 let bad = 0;
-tw.bars.forEach((b, i) => {
-  const t = b.e.reduce((a, e) => a + e.d, 0);
-  if (t !== 4) { bad++; console.log("!! 小节" + (i + 1) + " 拍数=" + t); }
-  if (b.mel) { const mt = b.mel.reduce((a, m) => a + m.d, 0); if (mt !== 4) { bad++; console.log("!! 小节" + (i + 1) + " 简谱拍数=" + mt); } }
+console.log("=== 全曲库数据校验（按各自拍号）===");
+TAB_DATA.forEach(function (song) {
+  const expect = BEATS[song.timeSig] || 4;
+  const msgs = [];
+  song.bars.forEach(function (b, i) {
+    const es = b.e.reduce(function (a, e) { return a + e.d; }, 0);
+    if (es !== expect && !b.pickup) msgs.push("小节" + (i + 1) + " 伴奏拍数=" + es);
+    if (b.mel) {
+      const ms = b.mel.reduce(function (a, m) { return a + m.d; }, 0);
+      if (ms !== expect && !b.pickup) msgs.push("小节" + (i + 1) + " 简谱拍数=" + ms);
+      if (b.ly && b.ly.length > b.mel.length) msgs.push("小节" + (i + 1) + " 歌词多于音符");
+    }
+  });
+  if (msgs.length) { bad++; console.log("!! " + song.id + ": " + msgs.join("; ")); }
+  else console.log(song.id + " (" + song.bars.length + " 小节 " + song.timeSig + ") OK");
 });
-console.log("拍数校验(伴奏+简谱): " + (bad === 0 ? "全部 4 拍 OK" : "有异常"));
-TAB_DATA.forEach(s => { const svg = renderTabSVG(s); if (svg.length < 500) throw new Error(s.id + " SVG 异常"); });
-console.log("全部 " + TAB_DATA.length + " 首渲染 OK");
+console.log(bad === 0 ? "=== 数据全部通过 ===" : "=== 有 " + bad + " 首异常 ===");
+
+TAB_DATA.forEach(function (sg) {
+  const svg = renderTabSVG(sg);
+  if (svg.indexOf('rect x="0" y="0"') < 0) throw new Error(sg.id + " 缺少白底");
+  if (svg.length < 500) throw new Error(sg.id + " SVG 异常");
+});
+console.log("全部 " + TAB_DATA.length + " 首渲染 OK（白底齐全）");
+
+const tw = TAB_DATA.filter(function (s) { return s.id === "twinkle"; })[0];
 const svg = renderTabSVG(tw);
-const checks = {
-  "多行谱表(viewBox 940)": svg.includes('viewBox="0 0 940'),
-  "× 记号": svg.includes("tab-xmark"),
-  "符干符梁2.6": svg.includes('stroke-width="2.6"'),
-  "迷你和弦图": svg.includes("mini-name"),
-  "简谱行": svg.includes("ac-num"),
-  "歌词行": svg.includes("ac-ly"),
-  "段落标记": svg.includes("tab-sec"),
-  "key 信息行": svg.includes("ac-head"),
-  "终止双线": svg.includes('stroke-width="3"'),
-  "事件序号 data-ev": svg.includes("data-ev")
-};
-let ok = true;
-for (const k in checks) { if (!checks[k]) { ok = false; console.log("!! 缺少: " + k); } }
-console.log("多行弹唱谱要素: " + (ok ? "齐全" : "缺失"));
-// data-ev 连续性：序号应从 0 开始且连续
-const idxs = [...svg.matchAll(/data-ev="([0-9]+)"/g)].map(m => +m[1]);
-const uniq = [...new Set(idxs)].sort((a,b)=>a-b);
-const continuous = uniq.every((v,i)=>v===i);
-console.log("事件序号连续 0.." + (uniq.length-1) + ": " + (continuous ? "OK" : "!! 断裂"));
-// 非弹唱曲目走旧渲染器不受影响
-const ode = renderTabSVG(TAB_DATA.find(s => s.id === "ode"));
-console.log("欢乐颂(旧格式)无 xmark: " + !ode.includes("tab-xmark") + "，无和弦图: " + !ode.includes("mini-name"));
+console.log("twinkle × 记号: " + (svg.indexOf(">×</text>") >= 0));
+console.log("twinkle 和弦图: " + (svg.indexOf(">C</text>") >= 0));
+console.log("twinkle 简谱: " + (svg.indexOf('font-size="19"') >= 0));
+console.log("twinkle 歌词一: " + (svg.indexOf(">一</text>") >= 0));
+
+const idxs = [];
+svg.replace(/data-ev="([0-9]+)"/g, function (m, d) { idxs.push(+d); return m; });
+const uniq = idxs.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; });
+let cont = true;
+for (let i = 0; i < uniq.length; i++) if (uniq[i] !== i) cont = false;
+console.log("twinkle 事件序号连续 0.." + (uniq.length - 1) + ": " + cont);
+
+const cn = renderTabSVG(TAB_DATA.filter(function (s) { return s.id === "canon"; })[0]);
+console.log("canon c2 和弦图(Bm): " + (cn.indexOf(">Bm</text>") >= 0));
+
+const sn = renderTabSVG(TAB_DATA.filter(function (s) { return s.id === "silentnight"; })[0]);
+let dots = 0;
+sn.replace(/r="2.2"/g, function () { dots++; return ""; });
+console.log("silentnight 低音点: " + dots + " 个");
+
+console.log("=== 全部检查完成 ===");
 `;
-eval(code);
+eval(sandbox);

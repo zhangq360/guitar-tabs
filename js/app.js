@@ -48,7 +48,7 @@
         s.genre.toLowerCase().indexOf(q) >= 0 ||
         (s.chords || []).join(" ").toLowerCase().indexOf(q) >= 0;
       const hitD = state.diff === "all" || s.difficulty <= parseInt(state.diff, 10);
-      const hitT = state.type === "all" || s.type === state.type;
+      const hitT = state.type === "all" || s.type === state.type || s.genre === state.type;
       const hitK = state.key === "all" || s.key === state.key;
       return hitQ && hitD && hitT && hitK;
     });

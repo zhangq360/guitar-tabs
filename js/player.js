@@ -50,21 +50,24 @@ const TabPlayer = (function () {
     // 先把 UI 高亮时间算出来
     let beatOffset = 0;
     song.bars.forEach(function (bar) {
+      const barBeats = bar.e.reduce(function (a, e) { return a + e.d; }, 0);
       bar.e.forEach(function (ev) {
         const durSec = ev.d * beat;
         const uiDelay = (t - ctx.currentTime + (beatOffset * beat)) * 1000;
-        const myIdx = ev.evIdx !== undefined ? ev.evIdx : null;
         // 记录事件序号 —— 由调用方保证 data-ev 顺序与展开顺序一致
         const evIdx = uiEventCounter++;
         timers.push(setTimeout(function () {
           if (onHighlight) onHighlight(evIdx);
         }, uiDelay));
+        // c2：半小节第二和弦（后半段 × 按第二和弦取音）
+        let chordName = bar.c;
+        if (bar.c2 && beatOffset >= barBeats / 2 - 0.01) chordName = bar.c2;
         ev.n.forEach(function (nt) {
           let f;
           if (nt[1] === "x") {
-            // 弹唱节奏型：× 按当前小节和弦的按法取音（在 CHORDS 中查该弦品数）
-            const cd = (typeof CHORDS !== "undefined" && bar.c)
-              ? CHORDS.find(function (c) { return bar.c.indexOf(c.name) === 0; }) : null;
+            // 弹唱节奏型：× 按当前和弦的按法取音（在 CHORDS 中查该弦品数）
+            const cd = (typeof CHORDS !== "undefined" && chordName)
+              ? CHORDS.find(function (c) { return chordName.indexOf(c.name) === 0; }) : null;
             const cf = cd ? cd.frets[6 - nt[0]] : 0;
             f = noteFreq(nt[0], cf >= 0 ? cf : 0);
           } else {
