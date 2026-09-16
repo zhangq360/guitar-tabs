@@ -113,9 +113,15 @@ function renderSoloSVG(song) {
         t += ev.d;
       });
 
-      // 音符：品数圆点 + 符干
+      // 音符：品数圆点 + 符干（休止事件画休止符号）
       evPos.forEach(function (ev) {
         const myEv = evSeq; evSeq += 1;
+        if (ev.notes.length === 0) {
+          s += '<g class="tabnote" data-ev="' + myEv + '">' +
+               '<rect x="' + (ev.x - 6) + '" y="' + (staffTop + SP + 3) + '" width="12" height="5.5" fill="#777"/>' +
+               '</g>';
+          return;
+        }
         let maxSt = 0;
         ev.notes.forEach(function (nt) { if (nt[0] > maxSt) maxSt = nt[0]; });
         ev.notes.forEach(function (nt) {
