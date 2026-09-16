@@ -367,3 +367,8 @@ a { color: var(--accent-deep); }
 @media (max-width: 900px) {
   .detail-wrap { grid-template-columns: 1fr; }
 }
+
+
+/* 完整编配版新增：段落标记 + 歌词行 */
+.tab-sec { font-size: 15px; font-weight: 700; fill: #e0a23f; }
+.tab-ly { font-size: 13px; fill: #9aa2ae; }

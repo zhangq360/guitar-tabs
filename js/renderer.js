@@ -12,14 +12,17 @@ const OPEN_FREQ = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41];
  */
 function renderTabSVG(song) {
   const SP = 13;            // 弦间距
-  const TOP = 52;           // 谱面上方留白（和弦标记）
   const LEFT = 46;          // 左侧留白（TAB 字样 + 首小节线）
   const STEM = 30;          // 符干长度
   const NOTE_R = 8.6;       // 品数圆点半径
 
+  // 段落标记（前奏/主歌…）需要更高的上方留白；歌词行需要更多下方留白
+  const hasSec = song.bars.some(function (b) { return b.sec; });
+  const hasLy = song.bars.some(function (b) { return b.ly; });
+  const TOP = hasSec ? 76 : 52;   // 谱面上方留白（段落标记 + 和弦）
   const staffTop = TOP;
   const staffBottom = staffTop + SP * 5;   // 6 条弦
-  const height = staffBottom + STEM + 34;
+  const height = staffBottom + STEM + (hasLy ? 60 : 34);
 
   // ---- 布局：逐小节推进 x 游标 ----
   let x = LEFT;
@@ -94,12 +97,22 @@ function renderTabSVG(song) {
       s += '<line x1="' + (width - 15) + '" y1="' + staffTop + '" x2="' + (width - 15) + '" y2="' + staffBottom +
            '" stroke="#a8b0bd" stroke-width="3"/>';
     }
+    // 段落标记：金色文字 + 左侧竖线（贯穿谱面）
+    if (bar.sec) {
+      s += '<text x="' + (bx + 4) + '" y="' + (staffTop - 40) + '" class="tab-sec">' + bar.sec + "</text>";
+      s += '<line x1="' + (bx - 4) + '" y1="' + (staffTop - 34) + '" x2="' + (bx - 4) + '" y2="' + staffBottom +
+           '" stroke="#e0a23f" stroke-width="2.5"/>';
+    }
     const info = barInfo[bi];
     if (info.chord) {
       s += '<text x="' + (bx + 18) + '" y="' + (staffTop - 22) + '" class="tab-chord">' + info.chord + "</text>";
     }
     if (info.num) {
       s += '<text x="' + (bx + 2) + '" y="' + (staffBottom + 20) + '" class="tab-barnum">' + info.num + "</text>";
+    }
+    // 歌词行（小节下方）
+    if (bar.ly) {
+      s += '<text x="' + (bx + 6) + '" y="' + (staffBottom + STEM + 24) + '" class="tab-ly">' + bar.ly + "</text>";
     }
   });
 
