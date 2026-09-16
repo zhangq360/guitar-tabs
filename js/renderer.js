@@ -11,6 +11,7 @@ const OPEN_FREQ = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41];
  * @returns {string} svg 标记（音符圆点带 class="tabnote" data-ev 序号，供播放高亮）
  */
 function renderTabSVG(song) {
+  if (song.style === "accomp") return renderAccompSVG(song);  // 弹唱谱：多行谱表版
   const SP = 13;            // 弦间距
   const LEFT = 46;          // 左侧留白（TAB 字样 + 首小节线）
   const STEM = 30;          // 符干长度
@@ -272,5 +273,180 @@ function renderChordMiniSVG(name, x, y) {
     s += '<text x="' + (gx - 2) + '" y="' + (gy + rh / 2 + 3) + '" class="tab-num" font-size="8" text-anchor="end">' + off + "</text>";
   }
   s += "</g>";
+  return s;
+}
+
+
+/* =========================================================
+ * 弹唱谱渲染器（多行谱表版）
+ * 结构（每行 4 小节，逐行往下排，仿纸质弹唱谱）：
+ *   [段落标记]  [和弦指位图（和弦变化时）]
+ *   ── 六线谱：× 记号 + 符干 + 八分音符符杆 ──
+ *   简谱旋律行（带增时线 / 八分下划线）
+ *   歌词行（逐字对齐简谱音符）
+ * ========================================================= */
+function renderAccompSVG(song) {
+  const SP = 13;                 // 弦间距
+  const PER_ROW = 4;             // 每行小节数
+  const LEFT = 58, RIGHT = 18;
+  const W = 940;
+  const barW = (W - LEFT - RIGHT) / PER_ROW;
+  const beatW = barW / 4;
+
+  const HEADER = 36;             // 顶部 key/拍号/速度 信息行
+  const CH = 64;                 // 和弦图区高
+  const STAFF = SP * 5;          // 六线谱高
+  const BEAM = 24;               // 符干/符杆区高
+  const NUMH = 26;               // 简谱行高
+  const LYH = 22;                // 歌词行高
+  const GAP = 34;                // 行与行间距
+  const SYS = CH + STAFF + BEAM + NUMH + LYH + GAP;
+  const rows = Math.ceil(song.bars.length / PER_ROW);
+  const H = HEADER + rows * SYS;
+
+
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H +
+         '" style="max-width:100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' +
+         song.title + ' 弹唱六线谱">';
+
+  // 顶部信息行
+  s += '<text x="' + LEFT + '" y="22" class="ac-head">key = ' + song.key +
+       "　" + song.timeSig + "　♩= " + song.bpm + "</text>";
+
+  let evSeq = 0;   // 全局事件序号（与播放器 uiEventCounter 对齐）
+
+  for (let r = 0; r < rows; r++) {
+    const rowBars = song.bars.slice(r * PER_ROW, r * PER_ROW + PER_ROW);
+    const sysTop = HEADER + r * SYS;
+    const staffTop = HEADER + r * SYS + CH;
+    const staffBottom = staffTop + STAFF;
+    const beamY = staffBottom + BEAM;
+    const numY = beamY + NUMH;
+    const lyY = numY + LYH;
+    const rowW = rowBars.length * barW;
+
+    // 六条弦（1 弦在顶）
+    for (let i = 0; i < 6; i++) {
+      const y = staffTop + i * SP;
+      s += '<line x1="' + (LEFT - 6) + '" y1="' + y + '" x2="' + (LEFT + rowW - 8) +
+           '" y2="' + y + '" stroke="#8a8f9a" stroke-width="' + (i === 0 || i === 5 ? 1.6 : 1) + '"/>';
+    }
+    // 左侧 TAB 字样
+    const midY = (staffTop + staffBottom) / 2;
+    s += '<text x="' + (LEFT - 22) + '" y="' + (midY - 14) + '" class="tab-word" text-anchor="middle">T</text>';
+    s += '<text x="' + (LEFT - 22) + '" y="' + midY + '" class="tab-word" text-anchor="middle">A</text>';
+    s += '<text x="' + (LEFT - 22) + '" y="' + (midY + 14) + '" class="tab-word" text-anchor="middle">B</text>';
+
+    let lastDia = "";
+    rowBars.forEach(function (bar, bi) {
+      const bx = LEFT + bi * barW;
+      const gi = r * PER_ROW + bi;             // 全局小节号
+      const isSongEnd = gi === song.bars.length - 1;
+
+      // 小节线（贯穿六线谱）
+      s += '<line x1="' + bx + '" y1="' + staffTop + '" x2="' + bx + '" y2="' + staffBottom +
+           '" stroke="#a8b0bd" stroke-width="1.4"/>';
+      if (bi === rowBars.length - 1) {
+        // 行末右侧封口线
+        s += '<line x1="' + (bx + barW) + '" y1="' + staffTop + '" x2="' + (bx + barW) + '" y2="' + staffBottom +
+             '" stroke="#a8b0bd" stroke-width="1.4"/>';
+      }
+      if (isSongEnd) {
+        // 终止双线
+        s += '<line x1="' + (bx + barW - 8) + '" y1="' + staffTop + '" x2="' + (bx + barW - 8) + '" y2="' + staffBottom +
+             '" stroke="#a8b0bd" stroke-width="1.2"/>';
+        s += '<line x1="' + (bx + barW - 2) + '" y1="' + staffTop + '" x2="' + (bx + barW - 2) + '" y2="' + staffBottom +
+             '" stroke="#a8b0bd" stroke-width="3"/>';
+      }
+
+      // 段落标记（金色）
+      if (bar.sec) {
+        s += '<text x="' + (bx + 2) + '" y="' + (sysTop + 8) + '" class="tab-sec">' + bar.sec + "</text>";
+      }
+      // 小节号（灰色小字，悬在谱表左上）
+      s += '<text x="' + (bx + 2) + '" y="' + (staffTop - 5) + '" class="ac-barnum">' + (gi + 1) + "</text>";
+
+      // 和弦指位图：和弦变化时 或 每行第一小节
+      if (bar.c && (bar.c !== lastDia || bi === 0)) {
+        s += renderChordMiniSVG(bar.c, bx + 14, sysTop + 8);
+        lastDia = bar.c;
+      }
+
+      // ---- 谱面事件：× 记号 / 品位圆点 + 符干 + 符杆 ----
+      let t = 0;
+      const evPos = [];   // { x, d, t, notes }
+      bar.e.forEach(function (ev) {
+        const ex = bx + (t + ev.d / 2) * beatW;
+        evPos.push({ x: ex, d: ev.d, t: t, notes: ev.n });
+        t += ev.d;
+      });
+
+      evPos.forEach(function (ev, ei) {
+        const myEv = evSeq; evSeq += 1;
+        let maxSt = 0;
+        ev.notes.forEach(function (nt) { if (nt[0] > maxSt) maxSt = nt[0]; });
+        ev.notes.forEach(function (nt) {
+          const y = staffTop + (nt[0] - 1) * SP;
+          if (nt[1] === "x") {
+            s += '<g class="tabnote" data-ev="' + myEv + '">' +
+                 '<text x="' + ev.x + '" y="' + (y + 3.8) + '" class="tab-xmark" text-anchor="middle">×</text></g>';
+          } else {
+            s += '<g class="tabnote" data-ev="' + myEv + '">' +
+                 '<circle cx="' + ev.x + '" cy="' + y + '" r="7.4" fill="#ffffff" stroke="#d96c3f" stroke-width="1.6"/>' +
+                 '<text x="' + ev.x + '" y="' + (y + 3.2) + '" class="tab-fret" text-anchor="middle">' + nt[1] + "</text></g>";
+          }
+        });
+        // 符干：从最低弦垂到符杆区
+        if (maxSt > 0 && ev.d < 4) {
+          const yTop = staffTop + (maxSt - 1) * SP + 4;
+          s += '<line x1="' + ev.x + '" y1="' + yTop + '" x2="' + ev.x + '" y2="' + beamY +
+               '" stroke="#a8b0bd" stroke-width="1.5"/>';
+        }
+      });
+
+      // 八分音符符杆：相邻两个 d=0.5 连横梁
+      for (let ei = 0; ei < evPos.length - 1; ei++) {
+        const a = evPos[ei], b = evPos[ei + 1];
+        if (a.d === 0.5 && b.d === 0.5 && Math.abs(a.t + 0.5 - b.t) < 0.01) {
+          s += '<line x1="' + a.x + '" y1="' + beamY + '" x2="' + b.x + '" y2="' + beamY +
+               '" stroke="#a8b0bd" stroke-width="2.6"/>';
+        }
+      }
+
+      // ---- 简谱旋律行 ----
+      if (bar.mel) {
+        let mt = 0;
+        bar.mel.forEach(function (m) {
+          const mx = bx + (mt + 0.5) * beatW;
+          s += '<text x="' + mx + '" y="' + numY + '" class="ac-num" text-anchor="middle">' + m.n + "</text>";
+          if (m.d < 1) {
+            // 八分下划线
+            s += '<line x1="' + (mx - 7) + '" y1="' + (numY + 5) + '" x2="' + (mx + 7) + '" y2="' + (numY + 5) +
+                 '" stroke="#d5dae2" stroke-width="1.2"/>';
+          }
+          // 增时线（延音 "-’）：每多一拍画一条
+          for (let k = 1; k < m.d; k++) {
+            const dx = bx + (mt + k + 0.5) * beatW;
+            s += '<text x="' + dx + '" y="' + numY + '" class="ac-num" text-anchor="middle">–</text>';
+          }
+          mt += m.d;
+        });
+      }
+
+      // ---- 歌词行（与简谱音符逐个对齐）----
+      if (bar.ly && bar.mel) {
+        let lt = 0;
+        bar.mel.forEach(function (m, mi) {
+          const lx = bx + (lt + 0.5) * beatW;
+          if (bar.ly[mi]) {
+            s += '<text x="' + lx + '" y="' + lyY + '" class="ac-ly" text-anchor="middle">' + bar.ly[mi] + "</text>";
+          }
+          lt += m.d;
+        });
+      }
+    });
+  }
+
+  s += "</svg>";
   return s;
 }

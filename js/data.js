@@ -15,6 +15,10 @@ function accPattern(b) {
     return { n: [[st, "x"]], d: 0.5 };
   });
 }
+// 简谱辅助：4 个四分音符 / 2 个四分 + 1 个二分（n 为简谱字符，"0" 为休止）
+function mel4(a, b, c, d) { return [{ n: a, d: 1 }, { n: b, d: 1 }, { n: c, d: 1 }, { n: d, d: 1 }]; }
+function mel3(a, b, c) { return [{ n: a, d: 1 }, { n: b, d: 1 }, { n: c, d: 2 }]; }
+function rest4() { return [{ n: "0", d: 1 }, { n: "0", d: 1 }, { n: "0", d: 1 }, { n: "0", d: 1 }]; }
 
 const TAB_DATA = [
   {
@@ -33,26 +37,26 @@ const TAB_DATA = [
     difficulty: 1,
     style: "accomp",
     bars: [
-      // ---- 前奏：C 和弦分解 ----
-      { c: "C", sec: "前奏", e: accPattern(5) },
-      { c: "C", e: accPattern(5) },
+      // ---- 前奏：C 和弦分解，简谱休止 ----
+      { c: "C", sec: "前奏", e: accPattern(5), mel: rest4() },
+      { c: "C", e: accPattern(5), mel: rest4() },
       // ---- 主歌：弹伴奏，唱旋律 ----
-      { c: "C", sec: "主歌", num: "1 1 5 5", ly: "一闪一闪", e: accPattern(5) },
-      { c: "C", num: "6 6 5 -", ly: "亮晶晶", e: accPattern(5) },
-      { c: "F", num: "4 4 3 3", ly: "满天都是", e: accPattern(4) },
-      { c: "C", num: "2 2 1 -", ly: "小星星", e: accPattern(5) },
+      { c: "C", sec: "主歌", mel: mel4("1", "1", "5", "5"), ly: ["一", "闪", "一", "闪"], e: accPattern(5) },
+      { c: "C", mel: mel3("6", "6", "5"), ly: ["亮", "晶", "晶"], e: accPattern(5) },
+      { c: "F", mel: mel4("4", "4", "3", "3"), ly: ["满", "天", "都", "是"], e: accPattern(4) },
+      { c: "C", mel: mel3("2", "2", "1"), ly: ["小", "星", "星"], e: accPattern(5) },
       // ---- 间奏：C-F-G-G 走向 ----
-      { c: "C", sec: "间奏", num: "5 5 4 4", e: accPattern(5) },
-      { c: "F", num: "3 3 2 -", e: accPattern(4) },
-      { c: "G", num: "5 5 4 4", e: accPattern(6) },
-      { c: "G", num: "3 3 2 -", e: accPattern(6) },
+      { c: "C", sec: "间奏", mel: mel4("5", "5", "4", "4"), e: accPattern(5) },
+      { c: "F", mel: mel3("3", "3", "2"), e: accPattern(4) },
+      { c: "G", mel: mel4("5", "5", "4", "4"), e: accPattern(6) },
+      { c: "G", mel: mel3("3", "3", "2"), e: accPattern(6) },
       // ---- 再现：回到主题 ----
-      { c: "C", sec: "再现", num: "1 1 5 5", ly: "一闪一闪", e: accPattern(5) },
-      { c: "C", num: "6 6 5 -", ly: "亮晶晶", e: accPattern(5) },
-      { c: "F", num: "4 4 3 3", ly: "满天都是", e: accPattern(4) },
-      { c: "C", num: "2 2 1 -", ly: "小星星", e: accPattern(5) },
+      { c: "C", sec: "再现", mel: mel4("1", "1", "5", "5"), ly: ["一", "闪", "一", "闪"], e: accPattern(5) },
+      { c: "C", mel: mel3("6", "6", "5"), ly: ["亮", "晶", "晶"], e: accPattern(5) },
+      { c: "F", mel: mel4("4", "4", "3", "3"), ly: ["满", "天", "都", "是"], e: accPattern(4) },
+      { c: "C", mel: mel3("2", "2", "1"), ly: ["小", "星", "星"], e: accPattern(5) },
       // ---- 尾声：完整 C 和弦收束 ----
-      { c: "C", sec: "尾声", num: "1 - - -", e: [ { n: [[5,3],[4,2],[3,0],[2,1],[1,0]], d: 4 } ] }
+      { c: "C", sec: "尾声", mel: [{ n: "1", d: 4 }], e: [ { n: [[5,3],[4,2],[3,0],[2,1],[1,0]], d: 4 } ] }
     ]
   },
   {
