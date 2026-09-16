@@ -19,10 +19,12 @@ function renderTabSVG(song) {
   // 段落标记（前奏/主歌…）需要更高的上方留白；歌词行需要更多下方留白
   const hasSec = song.bars.some(function (b) { return b.sec; });
   const hasLy = song.bars.some(function (b) { return b.ly; });
-  const TOP = hasSec ? 76 : 52;   // 谱面上方留白（段落标记 + 和弦）
+  const accomp = song.style === "accomp";   // 弹唱谱模式：上方挂和弦指位图，下方多简谱行
+  const TOP = accomp ? 102 : (hasSec ? 76 : 52);
   const staffTop = TOP;
   const staffBottom = staffTop + SP * 5;   // 6 条弦
-  const height = staffBottom + STEM + (hasLy ? 60 : 34);
+  const lyOff = accomp ? 52 : 24;          // 歌词行基线偏移（弹唱模式给简谱让一行）
+  const height = staffBottom + STEM + lyOff + (hasLy ? 16 : 6);
 
   // ---- 布局：逐小节推进 x 游标 ----
   let x = LEFT;
@@ -79,6 +81,7 @@ function renderTabSVG(song) {
        '" class="tab-word" text-anchor="middle">B</text>';
 
   // 小节线与和弦 / 小节号
+  let lastDia = "";
   song.bars.forEach(function (bar, bi) {
     const bx = barX[bi];
     const isLast = bi === song.bars.length - 1;
@@ -110,9 +113,18 @@ function renderTabSVG(song) {
     if (info.num) {
       s += '<text x="' + (bx + 2) + '" y="' + (staffBottom + 20) + '" class="tab-barnum">' + info.num + "</text>";
     }
+    // 弹唱模式：和弦变化时在小节上方挂迷你指位图
+    if (accomp && bar.c && bar.c !== lastDia) {
+      s += renderChordMiniSVG(bar.c, bx + 4, staffTop - 94);
+      lastDia = bar.c;
+    }
+    // 简谱旋律行（弹唱模式，唱的部分）
+    if (bar.num) {
+      s += '<text x="' + (bx + 6) + '" y="' + (staffBottom + STEM + 24) + '" class="tab-num">' + bar.num + "</text>";
+    }
     // 歌词行（小节下方）
     if (bar.ly) {
-      s += '<text x="' + (bx + 6) + '" y="' + (staffBottom + STEM + 24) + '" class="tab-ly">' + bar.ly + "</text>";
+      s += '<text x="' + (bx + 6) + '" y="' + (staffBottom + STEM + lyOff) + '" class="tab-ly">' + bar.ly + "</text>";
     }
   });
 
@@ -122,6 +134,12 @@ function renderTabSVG(song) {
       const st = nt[0];  // 1~6
       const fret = nt[1];
       const y = staffTop + (st - 1) * SP;
+      if (fret === "x") {
+        // 弹唱节奏型：× 记号（按当前和弦按法拨该弦）
+        s += '<g class="tabnote" data-ev="' + ev.evIdx + '">' +
+             '<text x="' + ev.x + '" y="' + (y + 3.6) + '" class="tab-xmark" text-anchor="middle">×</text></g>';
+        return;
+      }
       s += '<g class="tabnote" data-ev="' + ev.evIdx + '">' +
            '<circle cx="' + ev.x + '" cy="' + y + '" r="' + NOTE_R + '" fill="#ffffff" stroke="#d96c3f" stroke-width="1.6"/>' +
            '<text x="' + ev.x + '" y="' + (y + 3.6) + '" class="tab-fret" text-anchor="middle">' + fret + "</text></g>";
@@ -214,5 +232,45 @@ function renderChordSVG(chord) {
     s += '<text x="' + (W / 2) + '" y="' + (H - 6) + '" class="chord-pos" text-anchor="middle">横按和弦</text>';
   }
   s += "</svg>";
+  return s;
+}
+
+
+/**
+ * 迷你和弦指位图（弹唱谱用，嵌在六线谱上方）
+ */
+function renderChordMiniSVG(name, x, y) {
+  const cd = (typeof CHORDS !== "undefined") ? CHORDS.find(function (c) { return c.name === name; }) : null;
+  if (!cd) return "";
+  const gx = 4, gy = 15, cw = 9, rh = 11;
+  let s = '<g transform="translate(' + x + ',' + y + ')">';
+  s += '<text x="' + (gx + cw * 2.5) + '" y="9" class="mini-name" text-anchor="middle">' + name + "</text>";
+  const played = cd.frets.filter(function (f) { return f > 0; });
+  const minF = played.length ? Math.min.apply(null, played) : 1;
+  const off = minF > 3 ? minF : 0;
+  for (let i = 0; i < 6; i++) {
+    s += '<line x1="' + (gx + i * cw) + '" y1="' + gy + '" x2="' + (gx + i * cw) + '" y2="' + (gy + rh * 3) +
+         '" stroke="#9aa2ae" stroke-width="1"/>';
+  }
+  for (let j = 0; j <= 3; j++) {
+    s += '<line x1="' + gx + '" y1="' + (gy + j * rh) + '" x2="' + (gx + cw * 5) + '" y2="' + (gy + j * rh) +
+         '" stroke="' + (j === 0 && off === 0 ? "#c8cdd6" : "#9aa2ae") +
+         '" stroke-width="' + (j === 0 && off === 0 ? 2 : 1) + '"/>';
+  }
+  cd.frets.forEach(function (f, i) {
+    const cx = gx + i * cw;
+    if (f === -1) {
+      s += '<text x="' + cx + '" y="' + (gy - 4) + '" class="tab-xmark" font-size="8" text-anchor="middle">×</text>';
+    } else if (f === 0) {
+      s += '<circle cx="' + cx + '" cy="' + (gy - 5) + '" r="2.2" fill="none" stroke="#9aa2ae" stroke-width="1"/>';
+    } else {
+      const row = f - off;
+      s += '<circle cx="' + cx + '" cy="' + (gy + (row - 0.5) * rh) + '" r="3.4" fill="#d96c3f"/>';
+    }
+  });
+  if (off > 0) {
+    s += '<text x="' + (gx - 2) + '" y="' + (gy + rh / 2 + 3) + '" class="tab-num" font-size="8" text-anchor="end">' + off + "</text>";
+  }
+  s += "</g>";
   return s;
 }

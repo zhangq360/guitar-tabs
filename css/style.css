@@ -372,3 +372,7 @@ a { color: var(--accent-deep); }
 /* 完整编配版新增：段落标记 + 歌词行 */
 .tab-sec { font-size: 15px; font-weight: 700; fill: #e0a23f; }
 .tab-ly { font-size: 13px; fill: #9aa2ae; }
+
+/* 弹唱谱：× 记号 + 简谱行 */
+.tab-xmark { font-size: 11px; font-weight: 700; fill: #98a0ac; }
+.tab-num { font-size: 13px; fill: #c8cdd6; }

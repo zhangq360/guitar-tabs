@@ -60,7 +60,16 @@ const TabPlayer = (function () {
           if (onHighlight) onHighlight(evIdx);
         }, uiDelay));
         ev.n.forEach(function (nt) {
-          const f = noteFreq(nt[0], nt[1]);
+          let f;
+          if (nt[1] === "x") {
+            // 弹唱节奏型：× 按当前小节和弦的按法取音（在 CHORDS 中查该弦品数）
+            const cd = (typeof CHORDS !== "undefined" && bar.c)
+              ? CHORDS.find(function (c) { return bar.c.indexOf(c.name) === 0; }) : null;
+            const cf = cd ? cd.frets[6 - nt[0]] : 0;
+            f = noteFreq(nt[0], cf >= 0 ? cf : 0);
+          } else {
+            f = noteFreq(nt[0], nt[1]);
+          }
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = "triangle";
