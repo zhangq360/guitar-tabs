@@ -407,7 +407,7 @@ function renderAccompSVG(song) {
       // 八分音符符杆：相邻两个 d=0.5 连横梁
       for (let ei = 0; ei < evPos.length - 1; ei++) {
         const a = evPos[ei], b = evPos[ei + 1];
-        if (a.d === 0.5 && b.d === 0.5 && Math.abs(a.t + 0.5 - b.t) < 0.01) {
+        if (a.d === 0.5 && b.d === 0.5 && Math.abs(a.t + 0.5 - b.t) < 0.01 && Math.floor(a.t + 0.01) === Math.floor(b.t + 0.01)) {
           s += '<line x1="' + a.x + '" y1="' + beamY + '" x2="' + b.x + '" y2="' + beamY +
                '" stroke="#a8b0bd" stroke-width="2.6"/>';
         }
