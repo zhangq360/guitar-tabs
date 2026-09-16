@@ -1,13 +1,13 @@
 /* =========================================================
- * 旋律播放器（Web Audio API）
+ * 独奏谱播放器（Web Audio API）
+ * 旋律（1~3 弦）+ 低音/和声（4~6 弦）双声部同时发声
  * ========================================================= */
 
 const TabPlayer = (function () {
   let ctx = null;
   let timers = [];
   let activeOsc = [];
-  let playingEvIdx = -1;
-  let onHighlight = null;   // 回调：function(evIdx) 高亮当前音符
+  let onHighlight = null;   // 回调：function(evIdx) 高亮当前事件
   let onEnd = null;         // 回调：播放结束
 
   function ensureCtx() {
@@ -28,15 +28,18 @@ const TabPlayer = (function () {
     timers.forEach(function (t) { clearTimeout(t); });
     timers = [];
     activeOsc.forEach(function (o) {
-      try { o.gain.gain.cancelScheduledValues(ctx.currentTime); o.gain.gain.setValueAtTime(0, ctx.currentTime); o.osc.stop(); } catch (e) {}
+      try {
+        o.gain.gain.cancelScheduledValues(ctx.currentTime);
+        o.gain.gain.setValueAtTime(0, ctx.currentTime);
+        o.osc.stop();
+      } catch (e) {}
     });
     activeOsc = [];
-    playingEvIdx = -1;
     if (onHighlight) onHighlight(-1);
   }
 
   /**
-   * 播放整首曲子的旋律
+   * 播放整首独奏曲（旋律 + 低音双声部）
    * @param {object} song 曲目数据
    * @param {number} speed 速度倍率（0.6 ~ 1）
    */
@@ -44,64 +47,53 @@ const TabPlayer = (function () {
     stop();
     if (!ensureCtx()) return;
     const beat = 60 / (song.bpm * speed); // 一拍的秒数
-    let t = ctx.currentTime + 0.12;
-    let acc = 0; // 累计拍的偏移（用于 UI 高亮）
+    const t0 = ctx.currentTime + 0.12;
+    let offset = 0;   // 累计拍偏移
+    let evIdx = 0;    // 事件序号（与渲染器 data-ev 顺序一致）
 
-    // 先把 UI 高亮时间算出来
-    let beatOffset = 0;
     song.bars.forEach(function (bar) {
-      const barBeats = bar.e.reduce(function (a, e) { return a + e.d; }, 0);
       bar.e.forEach(function (ev) {
-        const durSec = ev.d * beat;
-        const uiDelay = (t - ctx.currentTime + (beatOffset * beat)) * 1000;
-        // 记录事件序号 —— 由调用方保证 data-ev 顺序与展开顺序一致
-        const evIdx = uiEventCounter++;
+        const evIdxHere = evIdx++;
+        const uiDelay = Math.max(0, (t0 - ctx.currentTime + offset * beat) * 1000);
         timers.push(setTimeout(function () {
-          if (onHighlight) onHighlight(evIdx);
+          if (onHighlight) onHighlight(evIdxHere);
         }, uiDelay));
-        // c2：半小节第二和弦（后半段 × 按第二和弦取音）
-        let chordName = bar.c;
-        if (bar.c2 && beatOffset >= barBeats / 2 - 0.01) chordName = bar.c2;
-        ev.n.forEach(function (nt) {
-          let f;
-          if (nt[1] === "x") {
-            // 弹唱节奏型：× 按当前和弦的按法取音（在 CHORDS 中查该弦品数）
-            const cd = (typeof CHORDS !== "undefined" && chordName)
-              ? CHORDS.find(function (c) { return chordName.indexOf(c.name) === 0; }) : null;
-            const cf = cd ? cd.frets[6 - nt[0]] : 0;
-            f = noteFreq(nt[0], cf >= 0 ? cf : 0);
-          } else {
-            f = noteFreq(nt[0], nt[1]);
-          }
+
+        const durSec = ev.d * beat;
+        const start0 = t0 + offset * beat;
+        // 多音事件（如终止和弦）逐弦错开 22ms，模拟拨弦
+        ev.n.forEach(function (nt, i) {
+          const f = noteFreq(nt[0], nt[1]);
+          const isMelody = nt[0] <= 3;   // 1~3 弦为旋律，4~6 弦为低音/和声
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = "triangle";
           osc.frequency.value = f;
-          const start = t + beatOffset * beat;
+          const start = start0 + i * 0.022;
+          const vol = isMelody ? 0.30 : 0.20;
+          const rel = Math.max(durSec * 0.95, 0.3);
           gain.gain.setValueAtTime(0, start);
-          gain.gain.linearRampToValueAtTime(0.32, start + 0.015);
-          gain.gain.setValueAtTime(0.32, Math.max(start + 0.02, start + durSec * 0.7));
-          gain.gain.exponentialRampToValueAtTime(0.001, start + durSec * 0.98);
+          gain.gain.linearRampToValueAtTime(vol, start + 0.012);
+          gain.gain.setValueAtTime(vol * 0.7, start + Math.min(0.25, durSec * 0.6));
+          gain.gain.exponentialRampToValueAtTime(0.001, start + rel);
           osc.connect(gain).connect(ctx.destination);
           osc.start(start);
-          osc.stop(start + durSec);
+          osc.stop(start + rel + 0.05);
           activeOsc.push({ osc: osc, gain: gain });
         });
-        beatOffset += ev.d;
+        offset += ev.d;
       });
     });
-    const totalMs = (t - ctx.currentTime + beatOffset * beat) * 1000 + 200;
+
+    const totalMs = (t0 - ctx.currentTime + offset * beat) * 1000 + 300;
     timers.push(setTimeout(function () {
       stop();
       if (onEnd) onEnd();
     }, totalMs));
   }
 
-  // 事件序号计数器（与渲染器 data-ev 对齐：渲染器按 bars→events 顺序编号）
-  let uiEventCounter = 0;
-
   return {
-    play: function (song, speed) { uiEventCounter = 0; play(song, speed); },
+    play: play,
     stop: stop,
     setHighlight: function (fn) { onHighlight = fn; },
     setOnEnd: function (fn) { onEnd = fn; },

@@ -137,7 +137,7 @@ function pageHtml(song) {
           <noscript><p class="tab-fallback">${esc(song.title)} · ${esc(song.type)} · ${esc(song.key)}：请启用 JavaScript 查看谱面，或访问首页使用各站点资源。</p></noscript>
         </div>
         <div class="play-bar">
-          <button id="btnPlay" class="btn btn-primary" type="button">▶ 播放旋律</button>
+          <button id="btnPlay" class="btn btn-primary" type="button">▶ 播放</button>
           <div class="speed-chips" id="speedChips">
             <button class="tab-btn on" data-v="0.6" type="button">0.6x</button>
             <button class="tab-btn" data-v="0.8" type="button">0.8x</button>
@@ -156,7 +156,7 @@ function pageHtml(song) {
         <p>本谱难度为 <strong>${DIFF[song.difficulty]}</strong>（${stars(song.difficulty)}），${song.difficulty <= 1 ? "几乎零门槛，完全不认识六线谱也能在十分钟内弹出第一句，强烈推荐作为你的第一首曲子。" : song.difficulty === 2 ? "需要掌握基础指法与简单节奏型，适合已经能流畅读谱的新手进阶。" : "包含更复杂的节奏与把位变化，建议先放慢速度分段练习，再逐渐提速到原速。"}不确定怎么开始？先读一遍<a href="../tutorial.html">零基础六线谱入门教程</a>。</p>
 
         <h2 class="sec-sub-title">怎么练习这份谱子？</h2>
-        <p>建议三步走：① 点击上方「播放旋律」，用 0.6 倍速听熟旋律走向；② 对照谱面逐小节模仿指法，先不求快、只求音对；③ 熟练后逐档提速至原速。练习中遇到不懂的符号，直接在<a href="../tutorial.html">新手教程</a>里查对应章节。</p>
+        <p>建议三步走：① 点击上方「播放」，用 0.6 倍速听熟旋律与低音的配合；② 对照谱面逐小节模仿指法，先不求快、只求音对；③ 熟练后逐档提速至原速。练习中遇到不懂的符号，直接在<a href="../tutorial.html">新手教程</a>里查对应章节。</p>
       </article>
 
       <section class="detail-card">

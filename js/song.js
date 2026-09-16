@@ -26,7 +26,7 @@
   const btnPlay = el("btnPlay");
 
   function resetBtn() {
-    btnPlay.textContent = "▶ 播放旋律";
+    btnPlay.textContent = "▶ 播放";
     btnPlay.dataset.playing = "0";
     document.querySelectorAll("#tabScroll .tabnote").forEach(function (n) { n.classList.remove("active"); });
   }

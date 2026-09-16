@@ -178,7 +178,7 @@
     }
   });
   TabPlayer.setOnEnd(function () {
-    el("btnPlay").textContent = "▶ 播放旋律";
+    el("btnPlay").textContent = "▶ 播放";
   });
 
   /* ---------- 和弦图库 ---------- */
@@ -237,7 +237,7 @@
       if (!currentSong) return;
       if (el("btnPlay").dataset.playing === "1") {
         TabPlayer.stop();
-        el("btnPlay").textContent = "▶ 播放旋律";
+        el("btnPlay").textContent = "▶ 播放";
         el("btnPlay").dataset.playing = "0";
       } else {
         TabPlayer.play(currentSong, currentSpeed);
@@ -246,7 +246,7 @@
       }
     });
     TabPlayer.setOnEnd(function () {
-      el("btnPlay").textContent = "▶ 播放旋律";
+      el("btnPlay").textContent = "▶ 播放";
       el("btnPlay").dataset.playing = "0";
     });
 
