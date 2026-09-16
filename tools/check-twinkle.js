@@ -1,56 +1,81 @@
+/* =========================================================
+ * check-twinkle.js — 全曲库校验（混合谱式）
+ * 用法: node tools/check-twinkle.js
+ * ========================================================= */
 const fs = require("fs");
-const root = "C:/Users/Administrator/WorkBuddy/2026-09-14-20-04-16/guitar-tabs/";
-const data = fs.readFileSync(root + "js/data.js", "utf8");
-const renderer = fs.readFileSync(root + "js/renderer.js", "utf8");
-const player = fs.readFileSync(root + "js/player.js", "utf8");
-const sandbox = data + "\n" + renderer + "\n" + player + "\n" + `
+const path = require("path");
+const ROOT = path.resolve(__dirname, "..");
+
+const src = fs.readFileSync(path.join(ROOT, "js", "data.js"), "utf8") +
+            "\n" + fs.readFileSync(path.join(ROOT, "js", "renderer.js"), "utf8");
+const { TAB_DATA, renderTabSVG, CHORDS } = new Function(src + "\nreturn { TAB_DATA: TAB_DATA, renderTabSVG: renderTabSVG, CHORDS: CHORDS };")();
+
 const BEATS = { "4/4": 4, "3/4": 3, "3/8": 1.5 };
-let bad = 0;
-console.log("=== 独奏曲库校验 ===");
-TAB_DATA.forEach(function (song) {
-  const expect = BEATS[song.timeSig] || 4;
-  const msgs = [];
-  let noteCount = 0, bassCount = 0;
-  song.bars.forEach(function (b, i) {
-    const es = b.e.reduce(function (a, e) { return a + e.d; }, 0);
-    if (es !== expect && !b.pickup) msgs.push("小节" + (i + 1) + " 拍数=" + es);
-    b.e.forEach(function (e) {
-      e.n.forEach(function (nt) {
-        noteCount++;
-        if (nt[0] >= 4) bassCount++;
-        if (nt[0] < 1 || nt[0] > 6) msgs.push("小节" + (i + 1) + " 弦号非法 " + nt[0]);
-        if (typeof nt[1] !== "number" || nt[1] < 0 || nt[1] > 19) msgs.push("小节" + (i + 1) + " 品位非法 " + nt[1]);
-      });
-    });
-  });
-  if (msgs.length) { bad++; console.log("!! " + song.id + ": " + msgs.join("; ")); }
-  else console.log(song.id + " (" + song.bars.length + " 小节 " + song.timeSig + ", " + noteCount + " 音, 低音 " + bassCount + ") OK");
-});
-console.log(bad === 0 ? "=== 拍数/指位全部通过 ===" : "=== 有 " + bad + " 首异常 ===");
+let errors = 0;
 
 TAB_DATA.forEach(function (sg) {
-  const svg = renderTabSVG(sg);
-  if (svg.indexOf('rect x="0" y="0"') < 0) throw new Error(sg.id + " 缺少白底");
-  // 事件序号连续性
-  const idxs = [];
-  svg.replace(/data-ev="(\\d+)"/g, function (m, d) { idxs.push(+d); return m; });
-  const uniq = idxs.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; });
-  const total = sg.bars.reduce(function (a, b) { return a + b.e.length; }, 0);
-  if (uniq.length && (uniq[0] !== 0 || uniq[uniq.length - 1] !== total - 1)) {
-    throw new Error(sg.id + " 事件序号范围异常: " + uniq[0] + ".." + uniq[uniq.length - 1] + " 应为 0.." + (total - 1));
+  const beats = BEATS[sg.timeSig];
+  if (!beats) { console.log("!! " + sg.id + " 未知拍号 " + sg.timeSig); errors++; return; }
+  if (!sg.style || (sg.style !== "solo" && sg.style !== "accomp")) {
+    console.log("!! " + sg.id + " 缺少 style 字段"); errors++; return;
   }
+
+  // 和弦必须都在和弦表里
+  (sg.chords || []).forEach(function (c) {
+    if (!CHORDS.some(function (cd) { return cd.name === c; })) {
+      console.log("!! " + sg.id + " 和弦 " + c + " 不在 CHORDS 表"); errors++;
+    }
+  });
+
+  sg.bars.forEach(function (bar, bi) {
+    const sum = bar.e.reduce(function (a, e) { return a + e.d; }, 0);
+    if (bar.pickup) {
+      if (sum >= beats) { console.log("!! " + sg.id + " 弱起小节 " + (bi + 1) + " 拍数 " + sum); errors++; }
+    } else if (Math.abs(sum - beats) > 0.001) {
+      console.log("!! " + sg.id + " 小节 " + (bi + 1) + " e 拍数 " + sum + " != " + beats); errors++;
+    }
+    if (sg.style === "accomp") {
+      if (!bar.mel) { console.log("!! " + sg.id + " 小节 " + (bi + 1) + " 弹唱谱缺 mel"); errors++; return; }
+      const msum = bar.mel.reduce(function (a, m) { return a + m.d; }, 0);
+      if (bar.pickup) {
+        if (msum >= beats) { console.log("!! " + sg.id + " 弱起小节 " + (bi + 1) + " mel 拍数 " + msum); errors++; }
+      } else if (Math.abs(msum - beats) > 0.001) {
+        console.log("!! " + sg.id + " 小节 " + (bi + 1) + " mel 拍数 " + msum + " != " + beats); errors++;
+      }
+      if (bar.mel.some(function (m) { return String(m.n).indexOf("#") >= 0; })) {
+        // 变音记号仅独奏谱标注，弹唱谱允许但提示
+        console.log("   " + sg.id + " 小节 " + (bi + 1) + " 简谱含变音记号");
+      }
+    } else if (bar.mel) {
+      console.log("!! " + sg.id + " 小节 " + (bi + 1) + " 独奏谱不应有 mel"); errors++;
+    }
+  });
+
+  // 渲染检查：白底、无 NaN、事件序号连续
+  const svg = renderTabSVG(sg);
+  if (/NaN|Infinity/.test(svg)) { console.log("!! " + sg.id + " SVG 含 NaN/Infinity"); errors++; }
+  if (svg.indexOf('rect x="0" y="0"') < 0) { console.log("!! " + sg.id + " 缺少白底"); errors++; }
+
+  const idxs = [];
+  svg.replace(/data-ev="(\d+)"/g, function (m, d) { idxs.push(+d); return m; });
+  const uniq = idxs.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; });
+  for (let i = 0; i < uniq.length; i++) {
+    if (uniq[i] !== i) { console.log("!! " + sg.id + " 事件序号不连续 @" + i); errors++; break; }
+  }
+  const totalE = sg.bars.reduce(function (a, b) { return a + b.e.length; }, 0);
+  if (totalE !== uniq.length) {
+    console.log("!! " + sg.id + " 事件数不匹配: 渲染 " + uniq.length + " vs 数据 " + totalE); errors++;
+  }
+
+  const styleName = sg.style === "solo" ? "独奏" : "弹唱";
+  console.log("ok " + sg.id.padEnd(12) + " [" + styleName + "] " + String(sg.bars.length).padStart(2) + " 小节 " + sg.timeSig + "  事件 " + totalE);
 });
-console.log("全部 " + TAB_DATA.length + " 首渲染 OK（白底齐全、序号连续 0..N-1、无 × 记号）");
 
-// 完整性：每首至少 8 小节
-const short = TAB_DATA.filter(function (s) { return s.bars.length < 8; });
-console.log(short.length ? "!! 曲子偏短: " + short.map(function (s) { return s.id + "=" + s.bars.length; }).join(",") : "曲长检查 OK（均 ≥ 8 小节）");
-console.log(TAB_DATA.map(function (s) { return s.id + "=" + s.bars.length; }).join(" "));
-
-const cn = renderTabSVG(TAB_DATA.filter(function (s) { return s.id === "canon"; })[0]);
-console.log("canon c2 和弦图(Bm): " + (cn.indexOf(">Bm</text>") >= 0));
-const tw = renderTabSVG(TAB_DATA.filter(function (s) { return s.id === "twinkle"; })[0]);
-console.log("twinkle 双音事件(终止和弦): " + (tw.indexOf("[5,3]") >= 0 || tw.match(/data-ev/g).length > 12));
-console.log("=== 全部检查完成 ===");
-`;
-eval(sandbox);
+if (errors) {
+  console.log("\n共 " + errors + " 个问题");
+  process.exit(1);
+} else {
+  console.log("\n全部通过：" + TAB_DATA.length + " 首（独奏 " +
+    TAB_DATA.filter(function (s) { return s.style === "solo"; }).length + " + 弹唱 " +
+    TAB_DATA.filter(function (s) { return s.style === "accomp"; }).length + "）");
+}

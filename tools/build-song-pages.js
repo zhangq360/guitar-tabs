@@ -65,7 +65,8 @@ function pageHtml(song) {
     "是一首" + (song.genre === "儿歌" ? "经典儿歌" : song.genre === "古典" ? "古典名曲" : "广为流传的曲目") +
     "，本站编配为 " + song.key + " " + song.type + "谱，难度" + DIFF[song.difficulty] +
     "（" + stars(song.difficulty) + "），拍号 " + song.timeSig + "，速度 ♩= " + song.bpm +
-    "。曲目已进入公有领域，本谱为原创编配，可免费在线查看、播放旋律跟练。";
+    "。曲目已进入公有领域，本谱为原创编配，可免费在线查看、" +
+    (song.style === "accomp" ? "弹伴奏跟唱练" : "播放跟练") + "。";
 
   const metaBar =
     '<div class="meta-bar">' +
@@ -156,7 +157,7 @@ function pageHtml(song) {
         <p>本谱难度为 <strong>${DIFF[song.difficulty]}</strong>（${stars(song.difficulty)}），${song.difficulty <= 1 ? "几乎零门槛，完全不认识六线谱也能在十分钟内弹出第一句，强烈推荐作为你的第一首曲子。" : song.difficulty === 2 ? "需要掌握基础指法与简单节奏型，适合已经能流畅读谱的新手进阶。" : "包含更复杂的节奏与把位变化，建议先放慢速度分段练习，再逐渐提速到原速。"}不确定怎么开始？先读一遍<a href="../tutorial.html">零基础六线谱入门教程</a>。</p>
 
         <h2 class="sec-sub-title">怎么练习这份谱子？</h2>
-        <p>建议三步走：① 点击上方「播放」，用 0.6 倍速听熟旋律与低音的配合；② 对照谱面逐小节模仿指法，先不求快、只求音对；③ 熟练后逐档提速至原速。练习中遇到不懂的符号，直接在<a href="../tutorial.html">新手教程</a>里查对应章节。</p>
+        <p>建议三步走：① 点击上方「播放」，用 0.6 倍速${song.style === "accomp" ? "听熟旋律与和弦伴奏的配合" : "听熟旋律与低音的配合"}；② 对照谱面逐小节模仿指法，先不求快、只求音对；③ 熟练后逐档提速至原速。练习中遇到不懂的符号，直接在<a href="../tutorial.html">新手教程</a>里查对应章节。</p>
       </article>
 
       <section class="detail-card">

@@ -11,7 +11,8 @@ const OPEN_FREQ = [329.63, 246.94, 196.00, 146.83, 110.00, 82.41];
  * @returns {string} svg 标记（音符圆点带 class="tabnote" data-ev 序号，供播放高亮）
  */
 function renderTabSVG(song) {
-  return renderSoloSVG(song);
+  if (song.style === "accomp") return renderAccompSVG(song);  // 弹唱谱
+  return renderSoloSVG(song);                                  // 独奏谱
 }
 
 /* =========================================================
@@ -257,5 +258,174 @@ function renderChordMiniSVG(name, x, y) {
     s += '<text x="' + (gx - 4) + '" y="' + (gy + rh / 2 + 4) + '" fill="#555" font-size="10" text-anchor="end">' + off + "</text>";
   }
   s += "</g>";
+  return s;
+}
+
+/* =========================================================
+ * 弹唱谱渲染器（多行谱表版 · 白底黑字纸质风）
+ * 每行 4 小节逐行下排：和弦图（支持 c2 半小节第二和弦）
+ * 六线谱（× 记号 + 符干 + 按拍符梁）→ 简谱行（增时线/八分下划线/高低八度点）→ 歌词行
+ * ========================================================= */
+function renderAccompSVG(song) {
+  const SP = 15;
+  const PER_ROW = 4;
+  const LEFT = 64, RIGHT = 20;
+  const W = 1040;
+  const barW = (W - LEFT - RIGHT) / PER_ROW;
+
+  // 拍号 → 每小节拍数（d 单位为四分音符）：4/4=4, 3/4=3, 3/8=1.5
+  const ts = (song.timeSig || "4/4").split("/");
+  const beatsPerBar = (parseFloat(ts[0]) || 4) * 4 / (parseFloat(ts[1]) || 4);
+  const beatW = barW / beatsPerBar;
+
+  const HEADER = 42, CH = 78, STAFF = SP * 5, BEAM = 26, NUMH = 32, LYH = 24, GAP = 38;
+  const SYS = CH + STAFF + BEAM + NUMH + LYH + GAP;
+  const rows = Math.ceil(song.bars.length / PER_ROW);
+  const H = HEADER + rows * SYS;
+
+  let s = '<svg viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H +
+         '" style="width:100%;background:#fff" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' +
+         song.title + ' 弹唱六线谱">';
+  s += '<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff"/>';
+
+  s += '<text x="' + LEFT + '" y="26" fill="#555" font-size="15">key = ' + song.key +
+       "　　" + song.timeSig + "　　♩= " + song.bpm + "</text>";
+
+  let evSeq = 0;   // 全局事件序号（与播放器高亮计数对齐，仅计 × 节奏事件）
+
+  for (let r = 0; r < rows; r++) {
+    const rowBars = song.bars.slice(r * PER_ROW, r * PER_ROW + PER_ROW);
+    const sysTop = HEADER + r * SYS;
+    const staffTop = sysTop + CH;
+    const staffBottom = staffTop + STAFF;
+    const beamY = staffBottom + BEAM;
+    const numY = beamY + NUMH;
+    const lyY = numY + LYH;
+    const rowW = rowBars.length * barW;
+
+    for (let i = 0; i < 6; i++) {
+      const y = staffTop + i * SP;
+      s += '<line x1="' + (LEFT - 6) + '" y1="' + y + '" x2="' + (LEFT + rowW - 8) +
+           '" y2="' + y + '" stroke="#333" stroke-width="' + (i === 0 || i === 5 ? 1.7 : 1.1) + '"/>';
+    }
+    const midY = (staffTop + staffBottom) / 2;
+    s += '<text x="' + (LEFT - 24) + '" y="' + (midY - 16) + '" fill="#666" font-size="17" font-weight="700" text-anchor="middle">T</text>';
+    s += '<text x="' + (LEFT - 24) + '" y="' + midY + '" fill="#666" font-size="17" font-weight="700" text-anchor="middle">A</text>';
+    s += '<text x="' + (LEFT - 24) + '" y="' + (midY + 16) + '" fill="#666" font-size="17" font-weight="700" text-anchor="middle">B</text>';
+
+    let lastDia = "";
+    rowBars.forEach(function (bar, bi) {
+      const bx = LEFT + bi * barW;
+      const gi = r * PER_ROW + bi;
+      const isSongEnd = gi === song.bars.length - 1;
+
+      if (bar.pickup) {
+        s += '<line x1="' + bx + '" y1="' + staffTop + '" x2="' + bx + '" y2="' + staffBottom +
+             '" stroke="#999" stroke-width="1" stroke-dasharray="4 3"/>';
+      } else {
+        s += '<line x1="' + bx + '" y1="' + staffTop + '" x2="' + bx + '" y2="' + staffBottom +
+             '" stroke="#333" stroke-width="1.5"/>';
+      }
+      if (bi === rowBars.length - 1) {
+        s += '<line x1="' + (bx + barW) + '" y1="' + staffTop + '" x2="' + (bx + barW) + '" y2="' + staffBottom +
+             '" stroke="#333" stroke-width="1.5"/>';
+      }
+      if (isSongEnd) {
+        s += '<line x1="' + (bx + barW - 9) + '" y1="' + staffTop + '" x2="' + (bx + barW - 9) + '" y2="' + staffBottom +
+             '" stroke="#333" stroke-width="1.3"/>';
+        s += '<line x1="' + (bx + barW - 2) + '" y1="' + staffTop + '" x2="' + (bx + barW - 2) + '" y2="' + staffBottom +
+             '" stroke="#333" stroke-width="3.4"/>';
+      }
+
+      if (bar.sec) {
+        s += '<text x="' + (bx + 2) + '" y="' + (sysTop + 10) + '" fill="#b8860b" font-size="15" font-weight="700">' + bar.sec + "</text>";
+      }
+      s += '<text x="' + (bx + 2) + '" y="' + (staffTop - 6) + '" fill="#999" font-size="11">' + (gi + 1) + "</text>";
+
+      if (bar.c && (bar.c !== lastDia || bi === 0)) {
+        s += renderChordMiniSVG(bar.c, bx + 16, sysTop + 8);
+        lastDia = bar.c;
+      }
+      if (bar.c2) {
+        s += renderChordMiniSVG(bar.c2, bx + barW * 0.56, sysTop + 8);
+      }
+
+      let t = 0;
+      const evPos = [];
+      bar.e.forEach(function (ev) {
+        const ex = bx + (t + ev.d / 2) * beatW;
+        evPos.push({ x: ex, d: ev.d, t: t, notes: ev.n });
+        t += ev.d;
+      });
+
+      evPos.forEach(function (ev) {
+        const myEv = evSeq; evSeq += 1;
+        let maxSt = 0;
+        ev.notes.forEach(function (nt) { if (nt[0] > maxSt) maxSt = nt[0]; });
+        ev.notes.forEach(function (nt) {
+          const y = staffTop + (nt[0] - 1) * SP;
+          if (nt[1] === "x") {
+            s += '<g class="tabnote" data-ev="' + myEv + '">' +
+                 '<text x="' + ev.x + '" y="' + (y + 4.4) + '" fill="#333" font-size="15" font-weight="700" text-anchor="middle">×</text></g>';
+          } else {
+            s += '<g class="tabnote" data-ev="' + myEv + '">' +
+                 '<circle cx="' + ev.x + '" cy="' + y + '" r="8.4" fill="#ffffff" stroke="#c0392b" stroke-width="1.8"/>' +
+                 '<text x="' + ev.x + '" y="' + (y + 3.8) + '" fill="#1a1a1a" font-size="12" font-weight="600" text-anchor="middle">' + nt[1] + "</text></g>";
+          }
+        });
+        if (maxSt > 0 && ev.d < 4) {
+          const yTop = staffTop + (maxSt - 1) * SP + 5;
+          s += '<line x1="' + ev.x + '" y1="' + yTop + '" x2="' + ev.x + '" y2="' + beamY +
+               '" stroke="#333" stroke-width="1.7"/>';
+        }
+      });
+
+      for (let ei = 0; ei < evPos.length - 1; ei++) {
+        const a = evPos[ei], b = evPos[ei + 1];
+        if (a.d === 0.5 && b.d === 0.5 && Math.abs(a.t + 0.5 - b.t) < 0.01 && Math.floor(a.t + 0.01) === Math.floor(b.t + 0.01)) {
+          s += '<line x1="' + a.x + '" y1="' + beamY + '" x2="' + b.x + '" y2="' + beamY +
+               '" stroke="#333" stroke-width="3"/>';
+        }
+      }
+
+      // 简谱旋律行（唱的部分）
+      if (bar.mel) {
+        let mt = 0;
+        bar.mel.forEach(function (m) {
+          const mx = bx + (mt + 0.5) * beatW;
+          let label = String(m.n);
+          const low = label.slice(-1) === ",";
+          const high = label.slice(-1) === "'";
+          if (low || high) label = label.slice(0, -1);
+          s += '<text x="' + mx + '" y="' + numY + '" fill="#1a1a1a" font-size="19" font-weight="600" text-anchor="middle">' + label + "</text>";
+          if (low) s += '<circle cx="' + mx + '" cy="' + (numY + 9) + '" r="2.2" fill="#1a1a1a"/>';
+          if (high) s += '<circle cx="' + mx + '" cy="' + (numY - 20) + '" r="2.2" fill="#1a1a1a"/>';
+          if (m.d < 1 && m.n !== "0") {
+            s += '<line x1="' + (mx - 8) + '" y1="' + (numY + 6) + '" x2="' + (mx + 8) + '" y2="' + (numY + 6) +
+                 '" stroke="#1a1a1a" stroke-width="1.4"/>';
+          }
+          for (let k = 1; k < m.d; k++) {
+            const dx = bx + (mt + k + 0.5) * beatW;
+            s += '<text x="' + dx + '" y="' + numY + '" fill="#1a1a1a" font-size="19" text-anchor="middle">–</text>';
+          }
+          mt += m.d;
+        });
+      }
+
+      // 歌词行（逐字对齐简谱）
+      if (bar.ly && bar.mel) {
+        let lt = 0;
+        bar.mel.forEach(function (m, mi) {
+          const lx = bx + (lt + 0.5) * beatW;
+          if (bar.ly[mi]) {
+            s += '<text x="' + lx + '" y="' + lyY + '" fill="#333" font-size="15" text-anchor="middle">' + bar.ly[mi] + "</text>";
+          }
+          lt += m.d;
+        });
+      }
+    });
+  }
+
+  s += "</svg>";
   return s;
 }
