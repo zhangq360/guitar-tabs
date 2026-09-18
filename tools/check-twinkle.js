@@ -10,7 +10,7 @@ const src = fs.readFileSync(path.join(ROOT, "js", "data.js"), "utf8") +
             "\n" + fs.readFileSync(path.join(ROOT, "js", "renderer.js"), "utf8");
 const { TAB_DATA, renderTabSVG, CHORDS } = new Function(src + "\nreturn { TAB_DATA: TAB_DATA, renderTabSVG: renderTabSVG, CHORDS: CHORDS };")();
 
-const BEATS = { "4/4": 4, "3/4": 3, "3/8": 1.5 };
+const BEATS = { "4/4": 4, "3/4": 3, "2/4": 2, "3/8": 1.5 };
 let errors = 0;
 
 TAB_DATA.forEach(function (sg) {
