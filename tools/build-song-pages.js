@@ -1,17 +1,21 @@
 /* =========================================================
  * build-song-pages.js — 为每首曲目生成静态详情页 song/{id}.html
  * 并同步重新生成 sitemap.xml
- * 运行: node tools/build-song-pages.js （项目根目录下执行）
+ * 运行: node tools/songctl.js build   （推荐）
+ *  或:  node tools/build-song-pages.js （项目根目录下执行）
+ *
+ * 域名等配置统一读 tools/site.config.js，不要在本文件里写死域名。
  * ========================================================= */
 const fs = require("fs");
 const path = require("path");
+const CFG = require("./site.config.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const src = fs.readFileSync(path.join(ROOT, "js", "data.js"), "utf8");
 const { TAB_DATA } = new Function(src + "\nreturn { TAB_DATA: TAB_DATA };")();
 
-const DOMAIN = "https://guitar-tabs.pages.dev";
-const DIFF = ["", "入门", "初级", "中级", "进阶", "高级"];
+const DOMAIN = CFG.DOMAIN;
+const DIFF = CFG.DIFF;
 
 function esc(t) {
   return String(t).replace(/[&<>"']/g, function (c) {
@@ -58,7 +62,7 @@ function relatedHtml(current) {
 
 /* ---------- 单页模板 ---------- */
 function pageHtml(song) {
-  const title = song.title + "吉他谱_" + esc(song.artist) + "_" + esc(song.type) + "谱（" + esc(song.key) + "）— 六线谱库";
+  const title = song.title + "吉他谱_" + esc(song.artist) + "_" + esc(song.type) + "谱（" + esc(song.key) + "）— " + CFG.SITE_NAME;
   const desc = String(song.desc || "").slice(0, 150);
   const intro =
     "《" + song.title + "》（" + song.subtitle + "）" +
@@ -81,7 +85,7 @@ function pageHtml(song) {
     ? '<h2 class="sec-sub-title">用到的和弦指位图</h2><p class="muted">点击谱面下方的和弦名可对照左侧指位练习转换。</p><div class="chord-row" id="detailChords"></div>'
     : "";
 
-  const jsonLd = JSON.stringify({
+  const jsonLdObj = {
     "@context": "https://schema.org",
     "@type": "MusicComposition",
     "name": song.title + "（吉他六线谱）",
@@ -90,8 +94,12 @@ function pageHtml(song) {
     "musicalKey": song.key,
     "inLanguage": "zh-CN",
     "url": DOMAIN + "/song/" + song.id + ".html",
-    "license": "Public domain arrangement (c) 六线谱库"
-  });
+    "license": "Public domain arrangement (c) " + CFG.SITE_NAME
+  };
+  /* 可选字段：published / updated 存在时补进结构化数据，帮助搜索引擎判断新鲜度 */
+  if (song.published) jsonLdObj.datePublished = song.published;
+  if (song.updated) jsonLdObj.dateModified = song.updated;
+  const jsonLd = JSON.stringify(jsonLdObj);
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -107,7 +115,7 @@ function pageHtml(song) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${esc(desc)}">
   <meta property="og:url" content="${DOMAIN}/song/${song.id}.html">
-  <meta property="og:site_name" content="六线谱库">
+  <meta property="og:site_name" content="${CFG.SITE_NAME}">
   <script type="application/ld+json">${jsonLd}</script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B8%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="../css/style.css">
@@ -116,7 +124,7 @@ function pageHtml(song) {
 
   <header class="site-header">
     <div class="container header-inner">
-      <a class="logo" href="../index.html">🎸 <span>六线谱库</span><em>Guitar Tab Hub</em></a>
+      <a class="logo" href="../index.html">🎸 <span>${CFG.SITE_NAME}</span><em>${CFG.SITE_NAME_EN}</em></a>
       <nav class="nav">
         <a href="../index.html#library">曲谱库</a>
         <a href="../index.html#chords">和弦图库</a>
@@ -191,21 +199,34 @@ function sitemapXml() {
     { loc: DOMAIN + "/tutorial.html", pri: "0.8", freq: "monthly" },
     { loc: DOMAIN + "/privacy.html", pri: "0.3", freq: "yearly" }
   ].concat(TAB_DATA.map(function (s) {
-    return { loc: DOMAIN + "/song/" + s.id + ".html", pri: "0.9", freq: "monthly" };
+    return {
+      loc: DOMAIN + "/song/" + s.id + ".html",
+      pri: "0.9",
+      freq: "monthly",
+      lastmod: s.updated || s.published || ""
+    };
   }));
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     urls.map(function (u) {
-      return "  <url>\n    <loc>" + u.loc + "</loc>\n    <changefreq>" + u.freq + "</changefreq>\n    <priority>" + u.pri + "</priority>\n  </url>";
+      return "  <url>\n    <loc>" + u.loc + "</loc>\n" +
+        (u.lastmod ? "    <lastmod>" + u.lastmod + "</lastmod>\n" : "") +
+        "    <changefreq>" + u.freq + "</changefreq>\n    <priority>" + u.pri + "</priority>\n  </url>";
     }).join("\n") + "\n</urlset>\n";
 }
 
 /* ---------- main ---------- */
-const outDir = path.join(ROOT, "song");
-if (!fs.existsSync(outDir)) fs.mkdirSync(outDir);
-let n = 0;
-TAB_DATA.forEach(function (s) {
-  fs.writeFileSync(path.join(outDir, s.id + ".html"), pageHtml(s), "utf8");
-  n++;
-});
-fs.writeFileSync(path.join(ROOT, "sitemap.xml"), sitemapXml(), "utf8");
-console.log("Generated " + n + " song pages + sitemap.xml (" + TAB_DATA.map(function (s) { return s.id; }).join(", ") + ")");
+function main() {
+  const outDir = path.join(ROOT, "song");
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir);
+  let n = 0;
+  TAB_DATA.forEach(function (s) {
+    fs.writeFileSync(path.join(outDir, s.id + ".html"), pageHtml(s), "utf8");
+    n++;
+  });
+  fs.writeFileSync(path.join(ROOT, "sitemap.xml"), sitemapXml(), "utf8");
+  console.log("[build] 域名 " + DOMAIN);
+  console.log("[build] 生成 " + n + " 个曲谱详情页 + sitemap.xml");
+  console.log("[build] 曲目：" + TAB_DATA.map(function (s) { return s.id; }).join(", "));
+}
+
+main();

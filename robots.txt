@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://guitar-tabs.pages.dev/sitemap.xml
+Sitemap: https://guitar-tab.cn/sitemap.xml
