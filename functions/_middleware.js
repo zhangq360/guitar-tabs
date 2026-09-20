@@ -63,8 +63,12 @@ export async function onRequest(context) {
     url.pathname = url.pathname.slice(0, -5);
     const newRequest = new Request(url.toString(), context.request);
     try {
-      const res = await fetch(newRequest);
-      if (res.status === 200) {
+      /* redirect:'manual' 不跟随跳转：无后缀资源真实存在时 Pages 直接 200；
+         不存在时是 308/404，落到下面走默认流程返回 404，避免软 404（把首页内容
+         当 200 返回给不存在的 URL，会被百度判定为软 404 站点，影响收录）。 */
+      const res = await fetch(newRequest, { redirect: 'manual' });
+      const ctype = res.headers.get('content-type') || '';
+      if (res.status === 200 && ctype.includes('text/html')) {
         return new Response(res.body, {
           status: 200,
           headers: res.headers,
