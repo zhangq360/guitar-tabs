@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>定制扒谱 · 原创歌曲记谱与编配 — 六线谱库</title>
+  <meta name="description" content="定制记谱与编配服务：帮原创音乐人把自己的歌记成六线谱，也接公有领域曲目与已授权作品的编配。弹唱版 50 元起、指弹版 150 元起，3-7 天交付 PDF 谱，个人学习用途 3 次内免费修改。不受理未授权的流行歌曲。">
+  <meta name="keywords" content="定制记谱,原创歌曲吉他谱,指弹编配,吉他谱定制,六线谱制作,公有领域曲目编配">
+  <meta name="theme-color" content="#14161b">
+  <link rel="canonical" href="https://guitar-tab.cn/custom.html">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="定制扒谱 · 原创歌曲记谱与编配">
+  <meta property="og:description" content="把你的歌变成吉他谱。弹唱版 50 元起，指弹版 150 元起，3-7 天交付。只受理原创、公有领域与已授权曲目。">
+  <meta property="og:url" content="https://guitar-tab.cn/custom.html">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%B8%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css?v=5dc2d644">
+  <style>
+    .lic-hero{padding:46px 0 34px;text-align:center}
+    .lic-hero h1{font-size:clamp(1.6rem,3.6vw,2.4rem);margin:0 0 12px;line-height:1.3}
+    .lic-hero p{color:var(--ink-soft);margin:0 auto 22px;max-width:660px}
+    .three{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:900px;margin:0 auto}
+    .three .t-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px 18px;text-align:left}
+    .three .t-card b{display:block;font-size:1.08rem;color:var(--accent-deep);margin-bottom:6px}
+    .three .t-card span{color:var(--ink-soft);font-size:.9rem}
+    .scope{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;max-width:940px;margin:0 auto}
+    .scope .s-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;border-top:3px solid var(--accent)}
+    .scope .s-card.no{border-top-color:#c0503f}
+    .scope .s-card b{display:block;margin-bottom:6px;color:var(--ink)}
+    .scope .s-card span{color:var(--ink-soft);font-size:.9rem}
+    .scope .s-card.yes b::before{content:"✓ ";color:var(--accent-deep);font-weight:800}
+    .scope .s-card.no b::before{content:"✕ ";color:#c0503f;font-weight:800}
+    .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+    .price-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px 22px;box-shadow:var(--shadow)}
+    .price-card.hot{border-color:var(--accent)}
+    .price-card .tag{position:absolute;top:-11px;right:16px;background:var(--accent);color:#16181d;font-size:.75rem;font-weight:700;border-radius:999px;padding:2px 10px}
+    .price-card h3{margin:0 0 6px;font-size:1.02rem;color:var(--ink)}
+    .price-card .num{font-size:1.9rem;font-weight:800;color:var(--accent-deep);line-height:1.2}
+    .price-card .num small{font-size:.85rem;font-weight:500;color:var(--ink-faint);margin-left:4px}
+    .price-card ul{padding-left:18px;margin:12px 0 0;color:var(--ink-soft);font-size:.9rem}
+    .price-card li{margin:5px 0}
+    .bundle{max-width:900px;margin:22px auto 0;text-align:center;background:var(--surface);border:1px dashed var(--accent);border-radius:12px;padding:14px 18px;color:var(--ink-soft);font-size:.92rem}
+    .bundle b{color:var(--accent-deep)}
+    .steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .steps li{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 18px 52px;color:var(--ink-soft);font-size:.92rem}
+    .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:16px;top:16px;width:24px;height:24px;border-radius:7px;background:var(--accent);color:#16181d;font-weight:800;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+    .steps li b{display:block;color:var(--ink);margin-bottom:4px}
+    .faq{max-width:820px}
+    .faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px}
+    .faq summary{cursor:pointer;font-weight:600;color:var(--ink)}
+    .faq details p{margin:10px 0 0;color:var(--ink-soft);font-size:.93rem}
+    .notice{max-width:840px;margin:0 auto;background:linear-gradient(160deg,rgba(240,168,78,.10),var(--surface));border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:18px 20px;color:var(--ink-soft);font-size:.9rem}
+    .notice b{color:var(--ink)}
+    .contact{background:linear-gradient(160deg,rgba(240,168,78,.12),var(--surface));border:1px solid var(--line);border-radius:16px;padding:26px;text-align:center}
+    .wx-box{display:inline-flex;align-items:center;gap:12px;background:var(--surface-2);border:1px dashed var(--accent);border-radius:12px;padding:12px 18px;margin:6px 0 10px;flex-wrap:wrap;justify-content:center}
+    .wx-id{font-size:1.22rem;font-weight:800;color:var(--accent-deep);letter-spacing:.5px}
+    .msgbox{max-width:640px;margin:14px auto 0;text-align:left;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink-soft);font-size:.9rem;line-height:1.7}
+    .legal{margin-top:16px;color:var(--ink-faint);font-size:.86rem}
+  </style>
+</head>
+<body class="theme-dark">
+
+  <!-- ======= 顶部导航 ======= -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="./">🎸 <span>六线谱库</span><em>Guitar Tab Hub</em></a>
+      <nav class="nav">
+        <a href="./#library">曲谱库</a>
+        <a href="./#chords">和弦图库</a>
+        <a href="tutorial.html">新手教程</a>
+        <a href="./#resources">资源导航</a>
+        <a href="custom.html" style="color:var(--accent-deep);font-weight:700">定制扒谱</a>
+        <a href="license.html">商用授权</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ======= 首屏 ======= -->
+  <section class="lic-hero">
+    <div class="container">
+      <h1>想把你的歌变成吉他谱？<span class="accent">我帮你记谱、编配</span></h1>
+      <p>你自己写的歌、公有领域的老歌、或你已获授权的作品——交给我逐句听写、编成完整六线谱，<b>3–7 天</b>给你一份能照着弹的谱。未经授权的流行歌曲我们不受理。</p>
+      <div class="three">
+        <div class="t-card"><b>🎧 听得准</b><span>按你的小样逐句听记，旋律、和弦、节奏都对得上，不用自己瞎猜。</span></div>
+        <div class="t-card"><b>✍️ 排得清楚</b><span>交付干净规整的 PDF 六线谱，标注把位与指法，可打印、可跟练。</span></div>
+        <div class="t-card"><b>🔁 改到你满意</b><span>个人学习用途，3 次以内免费修改，直到你弹着顺手。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <!-- ======= 服务范围 ======= -->
+    <section class="section section-alt">
+      <div class="container">
+        <h2 class="sec-title">我们做哪些曲子</h2>
+        <p class="sec-desc">只受理权利清晰的曲目——这既是对原创者的尊重，也是让这门服务能长久做下去的前提。</p>
+        <div class="scope">
+          <div class="s-card yes"><b>你自己的原创作品</b><span>你写的歌，想做谱、想编成指弹版？把音频小样、清唱或哼唱发我，我先听再报价。</span></div>
+          <div class="s-card yes"><b>公有领域曲目</b><span>古典名曲、传统民歌、超过版权保护期的老歌，随便点，随便编。</span></div>
+          <div class="s-card yes"><b>你已获授权的作品</b><span>你能出示权利人许可的曲目，同样可以委托，版权责任清晰。</span></div>
+          <div class="s-card no"><b>未经授权的流行歌 / 影视配乐</b><span>词曲受他人著作权保护，未经许可复制、改编、出售均构成侵权，我们一律不接。</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= 价格 ======= -->
+    <section class="section">
+      <div class="container">
+        <h2 class="sec-title">服务与报价</h2>
+        <p class="sec-desc">按首计价，先确认难度再付款。曲目越长、声部越多，价格越高。</p>
+        <div class="price-grid">
+          <div class="price-card">
+            <h3>弹唱版</h3>
+            <div class="num">¥50<small>/首</small></div>
+            <ul>
+              <li>主旋律六线谱</li>
+              <li>完整和弦走向标注</li>
+              <li>节奏型 / 分解提示</li>
+              <li>适合自弹自唱</li>
+            </ul>
+          </div>
+          <div class="price-card hot">
+            <span class="tag">最多人选</span>
+            <h3>指弹版</h3>
+            <div class="num">¥150<small>/首</small></div>
+            <ul>
+              <li>完整指弹独奏编配</li>
+              <li>含前奏 / 间奏 / 尾奏</li>
+              <li>标注把位、指法与技巧</li>
+              <li>适合 solo 表演</li>
+            </ul>
+          </div>
+          <div class="price-card">
+            <h3>精编 / 加急</h3>
+            <div class="num">¥300<small>起</small></div>
+            <ul>
+              <li>长曲（超 5 分钟）</li>
+              <li>多声部 / 双吉他 / 前奏改编</li>
+              <li>48 小时加急交付</li>
+              <li>指定调性、难度、把位</li>
+            </ul>
+          </div>
+        </div>
+        <div class="bundle">打包更划算：<b>3 首 9 折</b> · <b>5 首 8 折</b>（同类型可混搭，一次性下单）</div>
+      </div>
+    </section>
+
+    <!-- ======= 怎么下单 ======= -->
+    <section class="section section-alt">
+      <div class="container">
+        <h2 class="sec-title">四步拿到你的谱</h2>
+        <p class="sec-desc">不用注册、不用签合同，微信里说清楚就能开工。</p>
+        <ol class="steps">
+          <li><b>加微信发需求</b>曲目（原创请附小样）+ 要弹唱版还是指弹版 + 想要的调性。</li>
+          <li><b>我确认难度报价</b>告诉你属于哪一档、要多少钱、几天交付。</li>
+          <li><b>微信付款</b>确认后付款，排期开工。</li>
+          <li><b>收谱 + 可修改</b>交付 PDF 六线谱，3 次以内免费改。</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ======= 交付说明 ======= -->
+    <section class="section">
+      <div class="container">
+        <h2 class="sec-title">你会收到什么</h2>
+        <div class="about-grid">
+          <div class="about-card">
+            <h3>📄 PDF 六线谱</h3>
+            <p>A4 排版，可打印、可平板看。旋律、和弦、节奏、指法一次给全。</p>
+          </div>
+          <div class="about-card">
+            <h3>🎛️ 可选的源文件</h3>
+            <p>需要 Guitar Pro（.gp/.gpx）源文件方便自己改？加 30 元一并给你。</p>
+          </div>
+          <div class="about-card">
+            <h3>🎯 可指定细节</h3>
+            <p>调性、变调夹位置、难度（简化版 / 原版还原）、要不要一段示范音频说明——都可以提。</p>
+          </div>
+        </div>
+        <div class="legal">默认按原调交付；如需移调、变调夹版本或纯伴奏指法，在需求里注明即可。</div>
+      </div>
+    </section>
+
+    <!-- ======= 版权与范围 ======= -->
+    <section class="section section-alt">
+      <div class="container">
+        <h2 class="sec-title">版权与使用范围</h2>
+        <div class="notice">
+          <p style="margin:0 0 8px"><b>本服务只受理：你拥有版权的作品、公有领域作品、或你已取得权利人授权的作品。</b></p>
+          <p style="margin:0 0 8px">我们<b>不承接</b>未授权的流行歌曲、影视配乐等受他人著作权保护的作品——未经许可对这类作品进行复制、改编或出售，会侵犯词曲作者与版权方的合法权益。若你有意使用受版权保护的曲目，请先取得权利人许可（可通过词曲作者本人、版权方或中国音乐著作权协会办理），再来委托。</p>
+          <p style="margin:0 0 8px">交付的乐谱默认供你个人学习、练习，或用于你自己的原创项目；如需用于短视频、广告、游戏等商业场景，请另行走本站的<a href="license.html">商用授权</a>通道。</p>
+          <p style="margin:0">你的原创作品版权始终归你所有，我们只提供服务，不主张任何权利。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= 常见问题 ======= -->
+    <section class="section">
+      <div class="container faq">
+        <h2 class="sec-title">常见问题</h2>
+        <details><summary>为什么不受理流行歌？</summary><p>流行歌的词曲受著作权保护。未经许可把一首歌记谱、改编并出售，会同时涉及复制、改编和发行，属于侵权行为。所以我们只在「你拥有版权、属于公有领域、或你已获得授权」的情况下承接——这样对你、对我都安全。</p></details>
+        <details><summary>我自己写的歌，怎么给你？</summary><p>把音频小样、清唱、手机录制甚至哼唱发我都可以。我先听一遍，确认难度后给你报价和交期。</p></details>
+        <details><summary>多久能拿到谱？</summary><p>普通曲目 3–7 天；加急单 48 小时内交付（按加急档计价）。下单时我会给你一个明确日期。</p></details>
+        <details><summary>能改成指弹版，或者简化成新手能弹的版本吗？</summary><p>都能。你可以指定「尽量还原」或「简化到新手也能弹」，我会按你的水平调整。</p></details>
+        <details><summary>可以指定调性、变调夹吗？</summary><p>可以。默认原调，你也可以要求某个调、某个变调夹位置，或要求纯伴奏 + 演唱旋律分开写。</p></details>
+        <details><summary>交付格式是什么？</summary><p>默认交付 PDF 六线谱；需要 Guitar Pro（.gp/.gpx）源文件，加 30 元。</p></details>
+        <details><summary>不满意怎么办？</summary><p>3 次以内免费修改——哪里不对、哪里弹着别扭，直接说，我改到你满意为止。</p></details>
+        <details><summary>怎么付款？先付还是后付？</summary><p>微信里确认曲目和价格后付款，我这边开工。因为是一对一动手做，默认先付。</p></details>
+      </div>
+    </section>
+
+    <!-- ======= 联系 ======= -->
+    <section class="section section-alt">
+      <div class="container">
+        <div class="contact">
+          <h2 class="sec-title" style="justify-content:center;display:block;text-align:center">现在就想做？加微信</h2>
+          <p style="color:var(--ink-soft);margin:8px 0 4px">把下面这三句直接发我，我马上给你判断难度和报价：</p>
+          <div class="msgbox">
+            1. 曲目：<span style="color:var(--ink-faint)">（原创请附小样；公有领域或已授权请注明）</span><br>
+            2. 想要的形式：<span style="color:var(--ink-faint)">（弹唱版 / 指弹版 / 简化新手版）</span><br>
+            3. 其他要求：<span style="color:var(--ink-faint)">（调性、变调夹、交期…可留空）</span>
+          </div>
+          <div class="wx-box" style="margin-top:16px">
+            <span style="color:var(--ink-soft);font-size:.9rem">微信号</span>
+            <span class="wx-id" id="wxid">ZZ493224386</span>
+            <button class="btn btn-primary" id="copyWx" type="button">复制微信号</button>
+          </div>
+          <p style="color:var(--ink-faint);font-size:.86rem;margin:0">微信里搜这个号，或点「复制」后到微信粘贴添加。</p>
+          <p class="legal">也可以先在<a href="./#library">曲谱库</a>看看我的编配风格，觉得合口味再下单。<br>本站曲谱与音频均为公有领域曲目原创编配。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======= 页脚 ======= -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>🎸 六线谱库 · Guitar Tab Hub — 让每一次找谱都简单一点</p>
+      <p class="foot-note">内置谱例均为公有领域曲目之原创编配 · 定制记谱只受理原创 / 公有领域 / 已授权曲目 · <a href="license.html" style="color:inherit">商用授权</a> · <a href="privacy.html" style="color:inherit">隐私政策</a></p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('copyWx').addEventListener('click', function () {
+      var t = document.getElementById('wxid').textContent.trim();
+      var btn = this;
+      function done(){ btn.textContent = '已复制'; setTimeout(function(){ btn.textContent = '复制微信号'; }, 1600); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(done, fallback);
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = t; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch(e) { alert('微信号：' + t); }
+        document.body.removeChild(ta);
+      }
+    });
+  </script>
+
+</body>
+</html>
